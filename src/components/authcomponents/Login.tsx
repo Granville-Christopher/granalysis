@@ -38,6 +38,8 @@ const Login: React.FC<LoginProps> = ({ onShowCodeLogin, onLoginSuccess }) => {
           window.location.reload();
         }
         console.log('Logged in:', userResponse.data);
+        navigate("/dashboard");
+        window.location.reload();
     } catch (err: any) {
     setSuccess("");
     setError(err.response?.data?.message || "Login failed");

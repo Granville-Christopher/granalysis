@@ -1,3 +1,4 @@
+import api from "@/utils/axios";
 import React, { useState } from "react";
 
 const ForgotPassword: React.FC = () => {
@@ -13,9 +14,16 @@ const ForgotPassword: React.FC = () => {
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
 
   const handleSendOtp = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault(); otpSent ? handleResetPassword(e) : handleSendOtp(e);
     // Dummy OTP send logic
-    setOtpSent(true);
+    api.post("/auth/forgot-password", { email })
+      .then((response) => {
+        console.log(response.data);
+        setOtpSent(true);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
     alert("OTP sent to " + email);
   };
 

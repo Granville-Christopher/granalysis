@@ -15,16 +15,17 @@ export const PartnersSection = ({ colors }: { colors: ThemeConfig }) => {
     { name: 'Google Cloud', category: 'Infrastructure', description: 'Enterprise cloud services' }
   ];
   const glassmorphismClass = getGlassmorphismClass(colors);
-  const accentColor = colors.accent;
-
+  // const accentColor = colors.accent;
+  
   const categories = ['All', 'CRM', 'E-commerce', 'Infrastructure', 'AI'];
 
   return (
+    
     <div className="py-24 transition-colors duration-500" style={{ background: colors.isDark ? `linear-gradient(180deg, #1A345B 0%, ${colors.bg} 100%)` : `linear-gradient(180deg, #FFFFFF 0%, ${colors.bg} 100%)` }}>
       <div className="container mx-auto px-6 text-center">
         <h2 className={`text-5xl font-bold mb-4 ${colors.text}`}>Our Partners & Integrations</h2>
         <p className={`text-xl mb-12 ${colors.textSecondary}`}>Seamlessly connect with your existing tools</p>
-
+        
         {/* Category Filter */}
         <div className="mb-12 flex flex-wrap justify-center gap-3">
           {categories.map((cat) => (
