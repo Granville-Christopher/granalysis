@@ -8,7 +8,6 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ onShowCodeLogin, onLoginSuccess }) => {
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -38,7 +37,6 @@ const Login: React.FC<LoginProps> = ({ onShowCodeLogin, onLoginSuccess }) => {
           window.location.reload();
         }
         console.log('Logged in:', userResponse.data);
-        navigate("/dashboard");
         window.location.reload();
     } catch (err: any) {
     setSuccess("");

@@ -15,7 +15,6 @@ export const PartnersSection = ({ colors }: { colors: ThemeConfig }) => {
     { name: 'Google Cloud', category: 'Infrastructure', description: 'Enterprise cloud services' }
   ];
   const glassmorphismClass = getGlassmorphismClass(colors);
-  // const accentColor = colors.accent;
   
   const categories = ['All', 'CRM', 'E-commerce', 'Infrastructure', 'AI'];
 
