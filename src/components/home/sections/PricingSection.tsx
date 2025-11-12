@@ -263,7 +263,7 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
                           className={`flex items-center ${colors.textSecondary}`}
                         >
                           <Zap
-                            className={`md:w-4 w-3 md:h-4 h-3 md:mr-3 mr-2 text-xs md:text-base${
+                            className={`md:w-4 w-3 md:h-4 h-3 md:mr-3 mr-2 text-xs md:text-base ${
                               tier.isHighlighted ? "" : "text-green-500"
                             }`}
                             style={{
