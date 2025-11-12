@@ -76,7 +76,7 @@ export const FeaturesSection = ({ colors }: { colors: ThemeConfig }) => {
                   </div>
 
                   <div className="mt-4 flex items-center justify-between w-full">
-                    <span className={`text-sm font-semibold transition-opacity duration-300 ${isExpanded ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} style={{ color: accentColor }}>
+                    <span className={`text-sm font-semibold transition-opacity duration-300 ${isExpanded ? 'opacity-100' : 'opacity-50 group-hover:opacity-100'}`} style={{ color: accentColor }}>
                       {isExpanded ? 'Show Less' : 'Learn More'} <ChevronDown className={`w-4 h-4 inline transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
                     </span>
                   </div>
