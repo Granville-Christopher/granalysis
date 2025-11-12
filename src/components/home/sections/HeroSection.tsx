@@ -128,7 +128,7 @@ export const HeroSection = ({ colors }: { colors: ThemeConfig }) => {
             <div className="flex items-center gap-2">
               <Zap className="md:w-4 md:h-4 w-3 h-3" style={{ color: accentColor }} />
               <span className={`md:text-sm text-xs ${colors.textSecondary}`}>Insights Generated Today:</span>
-              <span className={`font-bold ${colors.text}`} style={{ color: accentColor }}>
+              <span className={`md:text-sm text-xs font-bold ${colors.text}`} style={{ color: accentColor }}>
                 <AnimatedNumber endValue={liveStats.insights} />
               </span>
             </div>
@@ -137,7 +137,7 @@ export const HeroSection = ({ colors }: { colors: ThemeConfig }) => {
             <div className="flex items-center gap-2">
               <TrendingUp className="md:w-4 md:h-4 w-3 h-3" style={{ color: accentColor }} />
               <span className={`md:text-sm text-xs ${colors.textSecondary}`}>Forecast Accuracy:</span>
-              <span className={`font-bold ${colors.text}`} style={{ color: accentColor }}>
+              <span className={`md:text-sm text-xs font-bold ${colors.text}`} style={{ color: accentColor }}>
                 {liveStats.accuracy}%
               </span>
             </div>
