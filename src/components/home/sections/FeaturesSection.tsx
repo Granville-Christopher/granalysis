@@ -19,8 +19,8 @@ export const FeaturesSection = ({ colors }: { colors: ThemeConfig }) => {
   return (
     <div className="py-24 transition-colors duration-500" id="features" style={{ backgroundColor: colors.bg }}>
       <div className="container mx-auto px-6 text-center">
-        <h2 className={`text-5xl font-bold mb-4 ${colors.text}`}>Core Platform Features</h2>
-        <p className={`text-xl mb-16 ${colors.textSecondary}`}>Everything you need to transform data into actionable insights</p>
+        <h2 className={`md:text-5xl text-3xl font-bold mb-4 ${colors.text}`}>Core Platform Features</h2>
+        <p className={`md:text-xl text-base mb-16 ${colors.textSecondary}`}>Everything you need to transform data into actionable insights</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 items-stretch">
           {featureCards.map((card, index) => {
@@ -54,9 +54,9 @@ export const FeaturesSection = ({ colors }: { colors: ThemeConfig }) => {
                       backgroundColor: accentColor, 
                       boxShadow: colors.isDark ? `0 0 15px ${accentColor}` : `0 4px 10px rgba(29, 78, 216, 0.3)`
                     }}>
-                    <card.icon className="w-6 h-6 text-white" />
+                    <card.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
                   </div>
-                  <h3 className={`text-2xl font-semibold mb-2 ${colors.text} group-hover:${colors.text} transition-colors`}>{card.title}</h3>
+                  <h3 className={`md:text-2xl text-lg font-semibold mb-2 ${colors.text} group-hover:${colors.text} transition-colors`}>{card.title}</h3>
                   <p className={`${colors.textSecondary} flex-grow transition-colors`}>{card.description}</p>
                   
                   {/* Expandable Content */}
