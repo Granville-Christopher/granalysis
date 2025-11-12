@@ -27,11 +27,11 @@ export const TestimonialsSection = ({ colors }: { colors: ThemeConfig }) => {
   return (
     <div className="py-24 transition-colors duration-500" style={{ backgroundColor: colors.bg }}>
       <div className="container mx-auto px-6">
-        <h2 className={`text-5xl font-bold text-center mb-4 ${colors.text}`}>What Our Leaders Say</h2>
-        <p className={`text-xl text-center mb-12 ${colors.textSecondary}`}>Real feedback from real customers</p>
+        <h2 className={`text-3xl md:text-5xl font-bold text-center mb-4 ${colors.text}`}>What Our Leaders Say</h2>
+        <p className={`md:text-xl text-base text-center mb-12 ${colors.textSecondary}`}>Real feedback from real customers</p>
 
         <ScrollReveal>
-          <div className={`p-8 mx-auto max-w-4xl min-h-[300px] relative overflow-hidden ${colors.isDark ? 'bg-white/[0.02] border border-white/10 rounded-2xl' : 'bg-white/80 border border-gray-200 rounded-2xl'}`}>
+          <div className={`md:p-8 p-4 mx-auto max-w-4xl min-h-[300px] relative overflow-hidden ${colors.isDark ? 'bg-white/[0.02] border border-white/10 rounded-2xl' : 'bg-white/80 border border-gray-200 rounded-2xl'}`}>
             {/* Navigation Arrows */}
             <button
               onClick={prevTestimonial}
@@ -58,7 +58,7 @@ export const TestimonialsSection = ({ colors }: { colors: ThemeConfig }) => {
                     {/* Avatar/Logo Placeholder */}
                     <div className="hidden md:flex flex-col items-center">
                       <div 
-                        className="w-24 h-24 rounded-full flex items-center justify-center text-2xl font-bold mb-2 transition-transform duration-300 hover:scale-110"
+                        className="w-24 h-24 rounded-full flex items-center justify-center md:text-2xl text-lg font-bold mb-2 transition-transform duration-300 hover:scale-110"
                         style={{ 
                           backgroundColor: accentColor,
                           color: colors.isDark ? '#0B1B3B' : 'white'
@@ -74,7 +74,7 @@ export const TestimonialsSection = ({ colors }: { colors: ThemeConfig }) => {
                     </div>
 
                     <div className="flex-1 text-center md:text-left">
-                      <p className={`text-2xl md:text-3xl font-serif italic mb-6 leading-relaxed ${colors.text}`}>"{t.quote}"</p>
+                      <p className={`md:text-2xl text-lg font-serif italic mb-6 leading-relaxed ${colors.text}`}>"{t.quote}"</p>
                       <div className="flex flex-col md:flex-row items-center md:items-start gap-2">
                         <p className={`text-lg font-semibold ${colors.text}`}>{t.name}</p>
                         <span className="hidden md:inline">•</span>

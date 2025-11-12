@@ -17,9 +17,9 @@ export const TrustAndSecuritySection = ({ colors }: { colors: ThemeConfig }) => 
 
   const StatBlock = ({ icon: Icon, value, label }: { icon: any; value: React.ReactNode; label: string }) => (
     <div className="flex flex-col items-center p-4 transition-transform duration-300 hover:scale-110">
-      <Icon className={`w-10 h-10 mb-2 transition-colors duration-300`} style={{ color: accentColor }} />
-      <div className={`text-4xl font-extrabold ${colors.text} text-shadow-glow`} style={{ textShadow: colors.isDark ? `0 0 10px ${accentColor}` : 'none' }}>{value}</div>
-      <div className={`text-sm font-light uppercase tracking-wider mt-1 ${colors.textSecondary}`}>{label}</div>
+      <Icon className={`md:w-10 md:h-10 w-6 h-6 mb-2 transition-colors duration-300`} style={{ color: accentColor }} />
+      <div className={`md:text-4xl text-2xl font-extrabold ${colors.text} text-shadow-glow`} style={{ textShadow: colors.isDark ? `0 0 10px ${accentColor}` : 'none' }}>{value}</div>
+      <div className={`md:text-sm text-xs font-light uppercase tracking-wider mt-1 ${colors.textSecondary}`}>{label}</div>
     </div>
   );
 
@@ -65,13 +65,13 @@ export const TrustAndSecuritySection = ({ colors }: { colors: ThemeConfig }) => 
       style={{ backgroundColor: colors.bg }}
     >
       <div className="container mx-auto px-6">
-        <h2 className={`text-5xl font-bold text-center mb-16 ${colors.text}`}>
+        <h2 className={`md:text-5xl text-3xl font-bold text-center mb-16 ${colors.text}`}>
           Security & Trust Signals
         </h2>
 
         <ScrollReveal className="mb-20">
           <div
-            className={`p-8 ${glassmorphismClass} mx-auto max-w-4xl grid grid-cols-3`}
+            className={`md:p-8 p-4 ${glassmorphismClass} mx-auto max-w-4xl grid grid-cols-3`}
           >
             {stats.map((stat) => (
               <StatBlock
@@ -116,7 +116,7 @@ export const TrustAndSecuritySection = ({ colors }: { colors: ThemeConfig }) => 
                 </div>
                 <div>
                   <span
-                    className={`absolute -top-2 -right-2 px-2 py-0.5 text-xs font-bold rounded-full ${
+                    className={`md:absolute md:-top-2 md:-right-2 absolute -top-1 -right-1 px-2 py-0.5 text-xs font-bold rounded-full ${
                       colors.isDark
                         ? "bg-green-900/40 text-green-400 border border-green-500/40"
                         : "bg-green-100 text-green-700 border border-green-300"
