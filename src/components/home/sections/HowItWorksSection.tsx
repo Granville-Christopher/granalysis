@@ -49,20 +49,20 @@ export const HowItWorksSection = ({ colors }: { colors: ThemeConfig }) => {
 
           {steps.map((step, index) => {
             const isLeftCard = index % 2 === 0;
-            const cardAlignment = isLeftCard ? 'mr-auto text-left' : 'ml-auto text-right';
-            const offsetPush = isLeftCard ? 'pr-64' : 'pl-64';
+            const cardAlignment = isLeftCard ? 'md:mr-auto text-left' : 'md:ml-auto text-right';
+            const offsetPush = isLeftCard ? 'md:pr-64 pr-28': 'md:pl-64 pl-28';
 
             return (
               <ScrollReveal key={index} className={`mb-20 last:mb-0 relative ${offsetPush}`}>
-                <div className={`relative z-20 w-full max-w-sm ${cardAlignment} group`}>
+                <div className={`relative z-20 w-full md:max-w-sm ${cardAlignment} group`}>
                   <div 
-                    className={`p-6 ${glassmorphismClass} transition-all duration-300 cursor-pointer ${colors.isDark ? 'hover:shadow-[0_0_30px_rgba(79,163,255,0.4)]' : 'hover:shadow-xl hover:scale-105'} ${hoveredStep === index ? 'scale-105 z-30' : ''}`}
+                    className={`md:p-6 p-4 ${glassmorphismClass} transition-all duration-300 cursor-pointer ${colors.isDark ? 'hover:shadow-[0_0_30px_rgba(79,163,255,0.4)]' : 'hover:shadow-xl hover:scale-105'} ${hoveredStep === index ? 'scale-105 z-30' : ''}`}
                     onMouseEnter={() => setHoveredStep(index)}
                     onMouseLeave={() => setHoveredStep(null)}
                   >
                     <div className={`mb-3 ${isLeftCard ? 'justify-start' : 'justify-end'} flex items-center gap-2`}>
                       <div className={`p-3 rounded-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 ${colors.isDark ? 'bg-white/5' : 'bg-gray-100'}`}>
-                        <step.icon className={`w-8 h-8 ${step.color}`} />
+                        <step.icon className={`w-5 h-5 md:w-8 md:h-8 ${step.color}`} />
                       </div>
                       {hoveredStep === index && (
                         <div className={`relative ${isLeftCard ? '' : 'order-first'}`}>
@@ -83,8 +83,8 @@ export const HowItWorksSection = ({ colors }: { colors: ThemeConfig }) => {
                         </div>
                       )}
                     </div>
-                    <h3 className={`text-2xl font-semibold mb-2 ${colors.text} group-hover:${colors.text} transition-colors`}>{step.title}</h3>
-                    <p className={`${colors.textSecondary} group-hover:${colors.text} transition-colors`}>{step.description}</p>
+                    <h3 className={`md:text-2xl text-lg font-semibold mb-2 ${colors.text} group-hover:${colors.text} transition-colors`}>{step.title}</h3>
+                    <p className={`md:text-base text-sm ${colors.textSecondary} group-hover:${colors.text} transition-colors`}>{step.description}</p>
                     <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
                       <Info className="w-4 h-4" style={{ color: accentColor }} />
                       <span className={`text-sm font-semibold`} style={{ color: accentColor }}>Hover for details &rarr;</span>
@@ -92,13 +92,13 @@ export const HowItWorksSection = ({ colors }: { colors: ThemeConfig }) => {
                   </div>
                 </div>
 
-                <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 p-4 rounded-full border-2 transition-all duration-300 hover:scale-110 cursor-pointer`}
+                <div className={`absolute md:top-1/2 top-10 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 md:p-4 p-2 rounded-full border-2 transition-all duration-300 hover:scale-110 cursor-pointer`}
                     style={{ 
                       backgroundColor: colors.bg, 
                       borderColor: accentColor,
                       boxShadow: colors.isDark ? `0 0 20px ${accentColor}` : `0 0 15px rgba(29, 78, 216, 0.3)`
                     }}>
-                    <span className={`text-xl font-bold`} style={{ color: accentColor }}>{index + 1}</span>
+                    <span className={`md:text-xl text-lg font-bold`} style={{ color: accentColor }}>{index + 1}</span>
                 </div>
 
                 <CurveConnector isLeftCard={isLeftCard} />
