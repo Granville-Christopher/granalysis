@@ -223,7 +223,7 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
       {/* Theme Toggle */}
       <button
         onClick={toggleTheme}
-        className={`fixed top-6 right-6 z-50 p-3 rounded-full transition-all duration-300 ${colors.text} hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2`}
+        className={`fixed md:top-6 top-3 md:right-6 right-3 z-50 p-3 rounded-full transition-all duration-300 ${colors.text} hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2`}
         style={{
           backgroundColor: colors.isDark
             ? "rgba(255, 255, 255, 0.1)"
@@ -317,10 +317,10 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
                 style={cardStyle}
               >
                 <div className="text-center mb-6">
-                  <h2 className={`md:text-3xl text-2xl font-bold mb-2 ${colors.text}`}>
+                  <h2 className={`md:text-3xl text-xl font-bold mb-2 ${colors.text}`}>
                     Welcome Back
                   </h2>
-                  <p className={`${colors.textSecondary} md:text-base text-sm`}>Login to your account</p>
+                  <p className={`${colors.textSecondary} md:text-base text-xs`}>Login to your account</p>
                 </div>
 
                 {loginSuccess ? (
@@ -345,7 +345,7 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
                       className={`block mb-2 font-medium ${colors.textSecondary} flex items-center space-x-2`}
                     >
                       <Mail className="w-4 h-4" />
-                      <span>Email</span>
+                      <span className="md:text-base text-xs">Email</span>
                     </label>
                     <input
                       type="email"
@@ -367,7 +367,7 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
                       className={`block mb-2 font-medium ${colors.textSecondary} flex items-center space-x-2`}
                     >
                       <Lock className="w-4 h-4" />
-                      <span>Password</span>
+                      <span className="md:text-base text-xs">Password</span>
                     </label>
                     <div className="relative">
                       <input
@@ -401,7 +401,7 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
 
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-xl font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2"
+                  className="w-full py-3 text-sm md:text-base rounded-xl font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2"
                   style={{
                     backgroundColor: accentColor,
                     boxShadow: `0 4px 15px ${accentColor}40`,
@@ -444,14 +444,14 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
                   style={{ backdropFilter: "blur(10px)" }}
                 >
                   <GoogleIcon className="w-5 h-5" />
-                  <span>Login with Google</span>
+                  <span className="md:text-base text-xs">Login with Google</span>
                 </button>
 
                 <div className="text-center space-y-2">
                   <p className={colors.textSecondary}>
                     <Link
                       to="/forgot-password"
-                      className="text-sm font-semibold transition-colors hover:underline"
+                      className="md:text-base text-xs font-semibold transition-colors hover:underline"
                       style={{ color: accentColor }}
                     >
                       Forgot password? Reset password here
@@ -462,7 +462,7 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
                     <button
                       type="button"
                       onClick={switchToSignup}
-                      className="font-semibold transition-colors hover:underline"
+                      className="md:text-base text-xs font-semibold transition-colors hover:underline"
                       style={{ color: accentColor }}
                     >
                       Sign Up
@@ -474,7 +474,7 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
 
             {/* Signup Form */}
             <div
-              className={`absolute inset-0 -top-[350px] transition-all duration-500 ${
+              className={`absolute inset-0 -top-[360px] md:-top-[350px] transition-all duration-500 ${
                 !isLogin
                   ? "opacity-100 z-10"
                   : "opacity-0 z-0 pointer-events-none"
@@ -492,10 +492,10 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
                 }}
               >
                 <div className="text-center mb-6">
-                  <h2 className={`md:text-3xl text-2xl font-bold mb-2 ${colors.text}`}>
+                  <h2 className={`md:text-3xl text-xl font-bold mb-2 ${colors.text}`}>
                     Create Account
                   </h2>
-                  <p className={`${colors.textSecondary} md:text-base text-sm`}>Sign up to get started</p>
+                  <p className={`${colors.textSecondary} md:text-base text-xs`}>Sign up to get started</p>
                 </div>
 
                 {signupSuccess ? (
@@ -522,7 +522,7 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
                         className={`block mb-2 font-medium ${colors.textSecondary} flex items-center space-x-2`}
                       >
                         <User className="w-4 h-4" />
-                        <span>Full Name</span>
+                        <span className="md:text-base text-xs">Full Name</span>
                       </label>
                       <input
                         type="text"
@@ -543,7 +543,7 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
                         className={`block mb-2 font-medium ${colors.textSecondary} flex items-center space-x-2`}
                       >
                         <Mail className="w-4 h-4" />
-                        <span>Email</span>
+                        <span className="md:text-base text-xs">Email</span>
                       </label>
                       <input
                         type="email"
@@ -568,7 +568,7 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
                         className={`block mb-2 font-medium ${colors.textSecondary} flex items-center space-x-2`}
                       >
                         <Building2 className="w-4 h-4" />
-                        <span>Company Name</span>
+                        <span className="md:text-base text-xs">Company Name</span>
                       </label>
                       <input
                         type="text"
