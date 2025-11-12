@@ -58,11 +58,11 @@ export const ImpactAndValidationSection = ({ colors }: { colors: ThemeConfig }) 
           <h3 className={`md:text-2xl text-lg font-semibold mb-4 ${colors.text}`}>Trusted by Fortune 500 Innovators</h3>
           <p className={`md:text-lg text-base mb-8 ${colors.textSecondary}`}>Join industry leaders transforming their sales operations</p>
           <ScrollReveal>
-            <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-6 mb-12">
+            <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-6 mb-12 ">
               {clientLogos.map((client, index) => (
                 <div 
                   key={index} 
-                  className={`p-4 rounded-lg transition-all duration-300 cursor-pointer ${colors.isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-gray-50 hover:bg-gray-100'}`}
+                  className={`p-4 rounded-lg transition-all duration-300 cursor-pointer flex flex-col items-center justify-center ${colors.isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-gray-50 hover:bg-gray-100'}`}
                   title={client.name}
                 >
                   <div className={`w-10 h-10 md:w-16 md:h-16 rounded-full flex items-center justify-center font-bold md:text-lg text-base transition-transform duration-300 hover:scale-110`}
@@ -71,7 +71,7 @@ export const ImpactAndValidationSection = ({ colors }: { colors: ThemeConfig }) 
                       color: colors.isDark ? '#0B1B3B' : 'white'
                     }}
                   >
-                    {client.logo}
+                    {client.logo} 
                   </div>
                   <p className={`text-xs mt-2 text-center ${colors.textSecondary}`}>{client.name}</p>
                 </div>
