@@ -184,8 +184,8 @@ export const HeroSection = ({ colors }: { colors: ThemeConfig }) => {
         {/* Dashboard Preview */}
         <div className="mx-auto max-w-6xl mt-16">
           <div className={`p-6 ${glassmorphismClass} transition-all duration-300`} style={{ boxShadow: colors.cardShadow }}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="col-span-1 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 md:gap-6">
+              <div className="col-span-1 space-y-4  ">
                 <div 
                   className={`p-4 rounded-xl ${innerCardBg} transition-all duration-300 cursor-pointer ${hoveredCard === 'sales' ? 'scale-105' : ''}`}
                   onMouseEnter={() => setHoveredCard('sales')}
@@ -226,7 +226,7 @@ export const HeroSection = ({ colors }: { colors: ThemeConfig }) => {
               </div>
 
               <div 
-                className={`col-span-2 p-4 rounded-xl h-80 flex flex-col ${innerCardBg} transition-all duration-300 ${hoveredCard === 'chart' ? 'scale-[1.02]' : ''}`}
+                className={`col-span-2 p-4 mt-2 md:mt-0 rounded-xl h-80 flex flex-col ${innerCardBg} transition-all duration-300 ${hoveredCard === 'chart' ? 'scale-[1.02]' : ''}`}
                 onMouseEnter={() => setHoveredCard('chart')}
                 onMouseLeave={() => setHoveredCard(null)}
                 style={hoveredCard === 'chart' ? {
@@ -234,7 +234,7 @@ export const HeroSection = ({ colors }: { colors: ThemeConfig }) => {
                 } : {}}
               >
                 <div className="flex justify-between items-center mb-2">
-                  <h4 className={`text-base font-semibold ${colors.text}`}>Monthly Revenue Trend</h4>
+                  <h4 className={`text-sm md:text-base font-semibold ${colors.text}`}>Monthly Revenue Trend</h4>
                   <button className="text-xs flex items-center gap-1 px-2 py-1 rounded transition-colors"
                     style={{ 
                       color: accentColor,
