@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import { Zap, Check, X, TrendingUp } from 'lucide-react';
 import { ThemeConfig, getGlassmorphismClass } from '../theme';
 import { pricingData } from '../data';
@@ -11,12 +11,41 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
   const glassmorphismClass = getGlassmorphismClass(colors);
   const [annual, setAnnual] = useState(true);
   const [showComparison, setShowComparison] = useState(false);
+  const cardRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-  const computePrice = useMemo(() => {
-    return (base: number) => annual ? Math.round(base * 12 * 0.85) : base;
-  }, [annual]);
+  const computePrices = useMemo(() => {
+    return (base: number) => {
+      const monthlyPrice = base;
+      const annualPrice = Math.round(base * 12 * 0.85);
+      return { monthlyPrice, annualPrice };
+    };
+  }, []);
+
 
   const allFeatures = ['1 file upload/month', 'Max 100 rows per file', 'Basic insights only', 'Email support', 'Up to 5 uploads/month', 'Up to 500 rows per file', 'Full AI insights & reports', 'Sales forecasting', 'Priority support', 'Up to 15 uploads/month', 'Up to 1000 rows per file', 'Advanced insights & modeling', 'Team dashboards & sharing', 'Dedicated account manager', 'Unlimited uploads', 'Unlimited rows per file', 'Unlimited DB linking (SQL, NoSQL)', 'All features included', '24/7 Premium Support'];
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>, tierTitle: string) => {
+    const card = cardRefs.current[tierTitle];
+    if (!card) return;
+
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    const rotateX = ((y - centerY) / centerY) * -10;
+    const rotateY = ((x - centerX) / centerX) * 10;
+
+    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+  };
+
+  const handleMouseLeave = (tierTitle: string) => {
+    const card = cardRefs.current[tierTitle];
+    if (!card) return;
+    card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+  };
 
   return (
     <div
@@ -92,74 +121,173 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
           </div>
         )}
 
-        <div className={`inline-flex items-center justify-center mb-16 rounded-full px-2 py-2 ${colors.isDark ? 'bg-white/10' : 'bg-white/80 border border-gray-200'}`}>
+        <div className={`relative inline-flex items-center justify-center mb-16 rounded-full px-2 py-2 ${colors.isDark ? 'bg-white/10' : 'bg-white/10 border border-gray-200'}`}>
+          <div
+            className={`absolute left-2 top-2 bottom-2 rounded-full transition-all duration-300 ease-in-out ${
+              colors.isDark ? 'bg-white/20' : 'bg-gray-100'
+            }`}
+            style={{
+              width: annual ? 'calc(60%)' : 'calc(30% )',
+              transform: annual ? 'translateX(calc(60% - 3px))' : 'translateX(0)',
+            }}
+          />
           <button
-            className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${!annual ? (colors.isDark ? 'bg-white/20' : 'bg-gray-100') : ''} ${colors.text}`}
+            className={`relative px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 z-10 ${
+              !annual 
+                ? (colors.isDark ? 'text-white' : 'text-gray-900') 
+                : (colors.isDark ? 'text-gray-400' : 'text-gray-500')
+            }`}
             onClick={() => setAnnual(false)}
           >
             Monthly
           </button>
           <button
-            className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${annual ? (colors.isDark ? 'bg-white/20' : 'bg-gray-100') : ''} ${colors.text}`}
+            className={`relative px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 z-10 ${
+              annual 
+                ? (colors.isDark ? 'text-white' : 'text-gray-900') 
+                : (colors.isDark ? 'text-gray-400' : 'text-gray-500')
+            }`}
             onClick={() => setAnnual(true)}
           >
             Annual <span className="ml-1 text-green-500">(Save 15%)</span>
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-8">
           {pricingData.map((tier) => {
-            const priceToShow = computePrice(tier.price);
+            const { monthlyPrice, annualPrice } = computePrices(tier.price);
+            
+            // const mainPrice = annual ? annualPrice : monthlyPrice;
+
             return (
               <ScrollReveal key={tier.title} className="h-full">
                 <div
-                  className={`p-[2px] rounded-2xl relative h-full ${tier.isHighlighted ? '' : ''}`}
+                  className={`p-[2px] rounded-2xl relative h-full ${
+                    tier.isHighlighted ? "" : ""
+                  }`}
                   style={{
                     background: tier.isHighlighted
                       ? `linear-gradient(135deg, ${accentColor}, transparent)`
-                      : colors.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
+                      : colors.isDark
+                      ? "rgba(255,255,255,0.06)"
+                      : "rgba(0,0,0,0.04)",
                   }}
                 >
                   {tier.isHighlighted && (
-                    <span className="absolute -top-5 left-1/2 -translate-x-1/2 px-3 py-1 text-xs font-bold rounded-full z-10 shadow-lg"
-                      style={{ backgroundColor: accentColor, color: colors.isDark ? '#0B1B3B' : 'white' }}>
+                    <span
+                      className="absolute -top-5 left-1/2 -translate-x-1/2 px-3 py-1 text-xs font-bold rounded-full z-10 shadow-lg"
+                      style={{
+                        backgroundColor: accentColor,
+                        color: colors.isDark ? "#0B1B3B" : "white",
+                      }}
+                    >
                       Most Popular
                     </span>
                   )}
                   <div
-                    className={`p-8 flex flex-col h-full ${glassmorphismClass} ${colors.isDark ? 'hover:shadow-[0_0_30px_rgba(79,163,255,0.4)]' : 'hover:shadow-xl'} transition-all`}
-                    style={{ borderColor: tier.isHighlighted ? accentColor : undefined }}
+                    ref={(el) => {
+                      cardRefs.current[tier.title] = el;
+                    }}
+                    onMouseMove={(e) => handleMouseMove(e, tier.title)}
+                    onMouseLeave={() => handleMouseLeave(tier.title)}
+                    className={`p-8 flex flex-col h-full ${glassmorphismClass} ${
+                      colors.isDark
+                        ? "hover:shadow-[0_0_30px_rgba(79,163,255,0.4)]"
+                        : "hover:shadow-xl"
+                    }`}
+                    style={{
+                      borderColor: tier.isHighlighted ? accentColor : undefined,
+                      transformStyle: "preserve-3d",
+                      transition: "transform 0.1s ease-out",
+                    }}
                   >
-                    <h3 className={`text-3xl font-bold mb-2 ${colors.text}`}>
+                    <h3 className={`md:text-3xl text-xl font-bold mb-2 ${colors.text}`}>
                       {tier.title}
                     </h3>
 
-                    <p className={`${colors.textSecondary} mb-6`}>
+                    <p className={`${colors.textSecondary} mb-6 text-sm md:text-base`}>
                       {tier.description}
                     </p>
 
                     <div className="my-6">
-                      <span className={`text-5xl font-extrabold ${colors.text}`}>$</span>
-                      <span className={`text-7xl font-extrabold ${colors.text}`}>
-                        <AnimatedNumber endValue={priceToShow} />
-                      </span>
-                      <span className={`text-2xl font-light ${colors.textSecondary}`}>{annual ? '/yr' : '/mo'}</span>
+                      <div className="flex flex-col items-center">
+                        <div className="flex items-baseline">
+                          <span
+                            className={`md:text-5xl text-2xl font-extrabold ${colors.text}`}
+                          >
+                            $
+                          </span>
+                          <span
+                            className={`md:text-7xl text-4xl font-extrabold ${colors.text}`}
+                          >
+                            <AnimatedNumber
+                              key={annual ? "annual" : "monthly"}
+                              endValue={annual ? annualPrice : monthlyPrice}
+                            />
+                          </span>
+                          <span
+                            className={`md:text-2xl text-sm font-light ${colors.textSecondary} ml-1`}
+                          >
+                            {annual ? "/yr" : "/mo"}
+                          </span>
+                        </div>
+
+                        <div
+                          className={`flex items-center mt-1 ${colors.textSecondary}`}
+                        >
+                          {annual ? (
+                            <>
+                              <span className="md:text-sm text-xs line-through opacity-60">
+                                ${(monthlyPrice * 12).toLocaleString()}
+                              </span>
+                              <span className="md:text-xs text-xs ml-1">/yr</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="md:text-sm text-xs opacity-70">
+                                ${(annualPrice / 12).toLocaleString()}
+                              </span>
+                              <span className="text-xs ml-1">
+                                /mo (annual equivalent)
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
                     <div className="flex-grow mb-8 space-y-3">
                       {tier.features.map((feature, i) => (
-                        <div key={i} className={`flex items-center ${colors.textSecondary}`}>
-                          <Zap className={`w-4 h-4 mr-3 ${tier.isHighlighted ? '' : 'text-green-500'}`} style={{ color: tier.isHighlighted ? accentColor : undefined }} />
+                        <div
+                          key={i}
+                          className={`flex items-center ${colors.textSecondary}`}
+                        >
+                          <Zap
+                            className={`w-4 h-4 mr-3 ${
+                              tier.isHighlighted ? "" : "text-green-500"
+                            }`}
+                            style={{
+                              color: tier.isHighlighted
+                                ? accentColor
+                                : undefined,
+                            }}
+                          />
                           <span className="text-sm">{feature}</span>
                         </div>
                       ))}
                     </div>
 
-                    <Button className={`mt-auto border`} colors={colors} gradientHover={!colors.isDark}>
+                    <Button
+                      className={`mt-auto border`}
+                      colors={colors}
+                      gradientHover={!colors.isDark}
+                    >
                       {tier.isHighlighted ? "Start Free Trial" : "Choose Plan"}
                     </Button>
-                    {tier.title === 'Enterprise' && (
-                      <button className={`mt-2 text-sm ${colors.textSecondary} hover:${colors.text} transition-colors`}>
+                    {tier.title === "Enterprise" && (
+                      <button
+                        className={`mt-2 text-sm ${colors.textSecondary} hover:${colors.text} transition-colors`}
+                      >
                         Contact Sales →
                       </button>
                     )}
