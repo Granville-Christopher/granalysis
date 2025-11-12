@@ -19,8 +19,8 @@ export const IndustrySolutionsSection = ({ colors }: { colors: ThemeConfig }) =>
   return (
     <div className="py-24 transition-colors duration-500" id="solutions" style={{ backgroundColor: colors.secondaryBg }}>
       <div className="container mx-auto px-6 text-center">
-        <h2 className={`text-5xl font-bold mb-4 ${colors.text}`}>Solutions for Your Industry</h2>
-        <p className={`text-xl mb-16 ${colors.textSecondary}`}>Stop analyzing general data. Start solving *your* specific challenges.</p>
+        <h2 className={`md:text-5xl text-3xl font-bold mb-4 ${colors.text}`}>Solutions for Your Industry</h2>
+        <p className={`md:text-xl text-base mb-16 ${colors.textSecondary}`}>Stop analyzing general data. Start solving *your* specific challenges.</p>
 
         {/* Industry Filter */}
         <div className="mb-12 flex flex-wrap justify-center gap-4">

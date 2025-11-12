@@ -27,18 +27,18 @@ export const ImpactAndValidationSection = ({ colors }: { colors: ThemeConfig }) 
   return (
     <div className="py-24 transition-colors duration-500" id="impact" style={{ background: colors.isDark ? `linear-gradient(180deg, ${colors.bg} 0%, #081630 100%)` : `linear-gradient(180deg, ${colors.bg} 0%, #FFFFFF 100%)` }}>
       <div className="container mx-auto px-6 text-center">
-        <h2 className={`text-5xl font-bold mb-4 ${colors.text}`}>Proven Impact & Client Validation</h2>
-        <p className={`text-xl mb-16 ${colors.textSecondary}`}>Results are the only metric that matters. See what we deliver.</p>
+        <h2 className={`md:text-5xl text-3xl font-bold mb-4 ${colors.text}`}>Proven Impact & Client Validation</h2>
+        <p className={`md:text-xl text-base mb-16 ${colors.textSecondary}`}>Results are the only metric that matters. See what we deliver.</p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
           {metrics.map((m, index) => (
             <ScrollReveal key={index}>
               <div className={`p-8 ${glassmorphismClass} flex flex-col items-center justify-center h-full transition-all duration-300 hover:scale-105 ${colors.isDark ? 'hover:shadow-[0_0_30px_rgba(79,163,255,0.4)]' : 'hover:shadow-xl'}`}>
                 <div className="relative mb-4">
-                  <Sparkles className={`w-10 h-10 ${m.color} transition-transform duration-300`} />
+                  <Sparkles className={`w-5 h-5 md:w-10 md:h-10 ${m.color} transition-transform duration-300`} />
                   <m.icon className={`w-6 h-6 absolute -bottom-1 -right-1 ${m.color}`} />
                 </div>
-                <p className={`text-6xl ${colors.text} mb-2 tracking-tighter font-mono`}>
+                <p className={`md:text-6xl text-4xl ${colors.text} mb-2 tracking-tighter font-mono`}>
                   {m.prefix}
                   <AnimatedNumber
                     endValue={m.value}
@@ -48,15 +48,15 @@ export const ImpactAndValidationSection = ({ colors }: { colors: ThemeConfig }) 
                   />
                   <span className="text-3xl">{m.unit}</span>
                 </p>
-                <p className={`text-lg uppercase font-medium tracking-wider mt-2 ${colors.textSecondary}`}>{m.label}</p>
+                <p className={`md:text-lg text-base uppercase font-medium tracking-wider mt-2 ${colors.textSecondary}`}>{m.label}</p>
               </div>
             </ScrollReveal>
           ))}
         </div>
 
         <div className="mt-20">
-          <h3 className={`text-2xl font-semibold mb-4 ${colors.text}`}>Trusted by Fortune 500 Innovators</h3>
-          <p className={`text-lg mb-8 ${colors.textSecondary}`}>Join industry leaders transforming their sales operations</p>
+          <h3 className={`md:text-2xl text-lg font-semibold mb-4 ${colors.text}`}>Trusted by Fortune 500 Innovators</h3>
+          <p className={`md:text-lg text-base mb-8 ${colors.textSecondary}`}>Join industry leaders transforming their sales operations</p>
           <ScrollReveal>
             <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-6 mb-12">
               {clientLogos.map((client, index) => (
@@ -65,7 +65,7 @@ export const ImpactAndValidationSection = ({ colors }: { colors: ThemeConfig }) 
                   className={`p-4 rounded-lg transition-all duration-300 cursor-pointer ${colors.isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-gray-50 hover:bg-gray-100'}`}
                   title={client.name}
                 >
-                  <div className={`w-16 h-16 rounded-full flex items-center justify-center font-bold text-lg transition-transform duration-300 hover:scale-110`}
+                  <div className={`w-10 h-10 md:w-16 md:h-16 rounded-full flex items-center justify-center font-bold md:text-lg text-base transition-transform duration-300 hover:scale-110`}
                     style={{ 
                       backgroundColor: accentColor,
                       color: colors.isDark ? '#0B1B3B' : 'white'
