@@ -154,31 +154,84 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-8">
-          {pricingData.map((tier) => {
+          {pricingData.map((tier, index) => {
             const { monthlyPrice, annualPrice } = computePrices(tier.price);
             
-            // const mainPrice = annual ? annualPrice : monthlyPrice;
+            // Premium gradient styles for each tier
+            const getPremiumGradient = () => {
+              if (tier.isHighlighted) {
+                // Most Popular - Enhanced accent gradient
+                return `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}80 50%, ${accentColor}40 100%)`;
+              }
+              // Different premium gradients for each tier
+              const gradients = [
+                // Free Tier - Silver/Platinum
+                colors.isDark 
+                  ? 'linear-gradient(135deg, rgba(192,192,192,0.3) 0%, rgba(169,169,169,0.2) 50%, rgba(128,128,128,0.1) 100%)'
+                  : 'linear-gradient(135deg, rgba(192,192,192,0.4) 0%, rgba(169,169,169,0.3) 50%, rgba(128,128,128,0.2) 100%)',
+                // Business - Gold/Amber
+                colors.isDark
+                  ? 'linear-gradient(135deg, rgba(255,193,7,0.3) 0%, rgba(255,152,0,0.2) 50%, rgba(255,111,0,0.1) 100%)'
+                  : 'linear-gradient(135deg, rgba(255,193,7,0.4) 0%, rgba(255,152,0,0.3) 50%, rgba(255,111,0,0.2) 100%)',
+                // Enterprise - Purple/Violet
+                colors.isDark
+                  ? 'linear-gradient(135deg, rgba(138,43,226,0.3) 0%, rgba(123,31,162,0.2) 50%, rgba(75,0,130,0.1) 100%)'
+                  : 'linear-gradient(135deg, rgba(138,43,226,0.4) 0%, rgba(123,31,162,0.3) 50%, rgba(75,0,130,0.2) 100%)',
+              ];
+              return gradients[index - 1] || gradients[0];
+            };
+
+            const getPremiumShadow = () => {
+              if (tier.isHighlighted) {
+                return colors.isDark 
+                  ? '0 0 40px rgba(79,163,255,0.5), 0 0 80px rgba(79,163,255,0.2)'
+                  : '0 0 30px rgba(79,163,255,0.3), 0 0 60px rgba(79,163,255,0.1)';
+              }
+              const shadows = [
+                // Free Tier - Silver glow
+                colors.isDark
+                  ? '0 0 30px rgba(192,192,192,0.3), 0 0 60px rgba(192,192,192,0.1)'
+                  : '0 0 25px rgba(192,192,192,0.2), 0 0 50px rgba(192,192,192,0.1)',
+                // Business - Gold glow
+                colors.isDark
+                  ? '0 0 30px rgba(255,193,7,0.3), 0 0 60px rgba(255,152,0,0.1)'
+                  : '0 0 25px rgba(255,193,7,0.2), 0 0 50px rgba(255,152,0,0.1)',
+                // Enterprise - Purple glow
+                colors.isDark
+                  ? '0 0 30px rgba(138,43,226,0.3), 0 0 60px rgba(123,31,162,0.1)'
+                  : '0 0 25px rgba(138,43,226,0.2), 0 0 50px rgba(123,31,162,0.1)',
+              ];
+              return shadows[index - 1] || shadows[0];
+            };
+
+            const getBorderColor = () => {
+              if (tier.isHighlighted) return accentColor;
+              const colors_arr = [
+                colors.isDark ? 'rgba(192,192,192,0.5)' : 'rgba(192,192,192,0.6)',
+                colors.isDark ? 'rgba(255,193,7,0.5)' : 'rgba(255,193,7,0.6)',
+                colors.isDark ? 'rgba(138,43,226,0.5)' : 'rgba(138,43,226,0.6)',
+              ];
+              return colors_arr[index - 1] || colors_arr[0];
+            };
 
             return (
               <ScrollReveal key={tier.title} className="h-full">
                 <div
-                  className={`p-[2px] rounded-2xl relative h-full ${
-                    tier.isHighlighted ? "" : ""
-                  }`}
+                  className={`p-[2px] rounded-2xl relative h-full overflow-visible`}
                   style={{
-                    background: tier.isHighlighted
-                      ? `linear-gradient(135deg, ${accentColor}, transparent)`
-                      : colors.isDark
-                      ? "rgba(255,255,255,0.06)"
-                      : "rgba(0,0,0,0.04)",
+                    background: getPremiumGradient(),
+                    boxShadow: tier.isHighlighted 
+                      ? (colors.isDark ? '0 0 20px rgba(79,163,255,0.3)' : '0 0 15px rgba(79,163,255,0.2)')
+                      : 'none',
                   }}
                 >
                   {tier.isHighlighted && (
                     <span
-                      className="absolute -top-5 left-1/2 -translate-x-1/2 px-3 py-1 text-xs font-bold rounded-full z-10 shadow-lg"
+                      className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 text-xs font-bold rounded-full z-10 shadow-lg animate-pulse"
                       style={{
                         backgroundColor: accentColor,
                         color: colors.isDark ? "#0B1B3B" : "white",
+                        boxShadow: `0 0 20px ${accentColor}80`,
                       }}
                     >
                       Most Popular
@@ -189,16 +242,22 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
                       cardRefs.current[tier.title] = el;
                     }}
                     onMouseMove={(e) => handleMouseMove(e, tier.title)}
-                    onMouseLeave={() => handleMouseLeave(tier.title)}
-                    className={`p-8 flex flex-col h-full ${glassmorphismClass} ${
-                      colors.isDark
-                        ? "hover:shadow-[0_0_30px_rgba(79,163,255,0.4)]"
-                        : "hover:shadow-xl"
-                    }`}
+                    onMouseEnter={(e) => {
+                      const card = e.currentTarget;
+                      card.style.boxShadow = getPremiumShadow();
+                    }}
+                    onMouseLeave={(e) => {
+                      handleMouseLeave(tier.title);
+                      const card = e.currentTarget;
+                      card.style.boxShadow = `0 4px 20px rgba(0,0,0,${colors.isDark ? '0.3' : '0.1'})`;
+                    }}
+                    className={`p-8 flex flex-col h-full ${glassmorphismClass} transition-all duration-300`}
                     style={{
-                      borderColor: tier.isHighlighted ? accentColor : undefined,
+                      borderColor: getBorderColor(),
+                      borderWidth: '1px',
                       transformStyle: "preserve-3d",
-                      transition: "transform 0.1s ease-out",
+                      transition: "transform 0.1s ease-out, box-shadow 0.3s ease-out",
+                      boxShadow: `0 4px 20px rgba(0,0,0,${colors.isDark ? '0.3' : '0.1'})`,
                     }}
                   >
                     <h3 className={`md:text-3xl text-xl font-bold mb-2 ${colors.text}`}>
