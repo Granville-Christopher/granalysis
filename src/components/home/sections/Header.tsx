@@ -44,7 +44,7 @@ export const Header = ({ theme, toggleTheme, colors }: { theme: Theme; toggleThe
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 p-4 md:p-6">
+      <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 p-2 md:p-4">
         {/* Progress Bar */}
         <div 
           className="absolute top-0 left-0 right-0 h-1 transition-all duration-300"
@@ -55,13 +55,13 @@ export const Header = ({ theme, toggleTheme, colors }: { theme: Theme; toggleThe
         />
         
         <div
-          className={`w-full max-w-7xl mx-auto flex justify-between items-center rounded-full p-4 border transition-all duration-300 ${borderClass}`}
+          className={`w-full max-w-7xl mx-auto flex justify-between items-center rounded-full px-2.5 py-2 md:p-4 border transition-all duration-300 ${borderClass}`}
           style={headerStyle}
         >
           <a
             href="#home"
             onClick={scrollToTop}
-            className="text-3xl font-extrabold tracking-tight cursor-pointer transition-colors duration-300 hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg"
+            className="md:text-3xl text-2xl font-extrabold tracking-tight cursor-pointer transition-colors duration-300 hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg"
             style={{ color: accentColor }}
           >
             Granalysis
