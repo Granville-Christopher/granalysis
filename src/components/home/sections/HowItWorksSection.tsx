@@ -38,7 +38,7 @@ export const HowItWorksSection = ({ colors }: { colors: ThemeConfig }) => {
   return (
     <div className="py-24 transition-colors duration-500" style={{ backgroundColor: colors.bg }}>
       <div className="container mx-auto px-6 text-center">
-        <h2 className={`text-5xl font-bold mb-16 ${colors.text}`}>How Granalysis Works</h2>
+        <h2 className={`md:text-5xl text-3xl font-bold mb-16 ${colors.text}`}>How Granalysis Works</h2>
         <div className="relative max-w-4xl mx-auto">
           <div className={`absolute inset-y-0 left-1/2 transform -translate-x-1/2 w-0.5 ${colors.isDark ? 'bg-gray-700' : 'bg-gray-300'} z-0 overflow-hidden`}>
             <div className="absolute inset-y-0 w-full" style={{
@@ -49,12 +49,12 @@ export const HowItWorksSection = ({ colors }: { colors: ThemeConfig }) => {
 
           {steps.map((step, index) => {
             const isLeftCard = index % 2 === 0;
-            const cardAlignment = isLeftCard ? 'md:mr-auto md:text-left' : 'md:ml-auto md:text-right';
-            const offsetPush = isLeftCard ? 'md:pr-64' : 'md:pl-64';
+            const cardAlignment = isLeftCard ? 'mr-auto text-left' : 'ml-auto text-right';
+            const offsetPush = isLeftCard ? 'pr-64' : 'pl-64';
 
             return (
               <ScrollReveal key={index} className={`mb-20 last:mb-0 relative ${offsetPush}`}>
-                <div className={`relative z-20 w-full md:max-w-sm ${cardAlignment} group`}>
+                <div className={`relative z-20 w-full max-w-sm ${cardAlignment} group`}>
                   <div 
                     className={`p-6 ${glassmorphismClass} transition-all duration-300 cursor-pointer ${colors.isDark ? 'hover:shadow-[0_0_30px_rgba(79,163,255,0.4)]' : 'hover:shadow-xl hover:scale-105'} ${hoveredStep === index ? 'scale-105 z-30' : ''}`}
                     onMouseEnter={() => setHoveredStep(index)}
