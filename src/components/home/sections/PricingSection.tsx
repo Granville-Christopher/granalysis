@@ -21,6 +21,26 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
     };
   }, []);
 
+  // Helper function to convert hex to RGB
+  const hexToRgb = (hex: string) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result
+      ? {
+          r: parseInt(result[1], 16),
+          g: parseInt(result[2], 16),
+          b: parseInt(result[3], 16),
+        }
+      : { r: 79, g: 163, b: 255 }; // Default blue
+  };
+
+  // Create lighter shades of accent color
+  const accentRgb = hexToRgb(accentColor);
+  const lightAccent1 = `rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, ${colors.isDark ? '0.25' : '0.35'})`;
+  const lightAccent2 = `rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, ${colors.isDark ? '0.15' : '0.25'})`;
+  const lightAccent3 = `rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, ${colors.isDark ? '0.08' : '0.15'})`;
+  const lightAccentBorder = `rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, ${colors.isDark ? '0.4' : '0.5'})`;
+  const lightAccentGlow = `rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, ${colors.isDark ? '0.25' : '0.2'})`;
+
 
   const allFeatures = ['1 file upload/month', 'Max 100 rows per file', 'Basic insights only', 'Email support', 'Up to 5 uploads/month', 'Up to 500 rows per file', 'Full AI insights & reports', 'Sales forecasting', 'Priority support', 'Up to 15 uploads/month', 'Up to 1000 rows per file', 'Advanced insights & modeling', 'Team dashboards & sharing', 'Dedicated account manager', 'Unlimited uploads', 'Unlimited rows per file', 'Unlimited DB linking (SQL, NoSQL)', 'All features included', '24/7 Premium Support'];
 
@@ -163,55 +183,50 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
                 // Most Popular - Enhanced accent gradient
                 return `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}80 50%, ${accentColor}40 100%)`;
               }
-              // Different premium gradients for each tier
-              const gradients = [
-                // Free Tier - Silver/Platinum
-                colors.isDark 
-                  ? 'linear-gradient(135deg, rgba(192,192,192,0.3) 0%, rgba(169,169,169,0.2) 50%, rgba(128,128,128,0.1) 100%)'
-                  : 'linear-gradient(135deg, rgba(192,192,192,0.4) 0%, rgba(169,169,169,0.3) 50%, rgba(128,128,128,0.2) 100%)',
-                // Business - Gold/Amber
-                colors.isDark
-                  ? 'linear-gradient(135deg, rgba(255,193,7,0.3) 0%, rgba(255,152,0,0.2) 50%, rgba(255,111,0,0.1) 100%)'
-                  : 'linear-gradient(135deg, rgba(255,193,7,0.4) 0%, rgba(255,152,0,0.3) 50%, rgba(255,111,0,0.2) 100%)',
-                // Enterprise - Purple/Violet
-                colors.isDark
-                  ? 'linear-gradient(135deg, rgba(138,43,226,0.3) 0%, rgba(123,31,162,0.2) 50%, rgba(75,0,130,0.1) 100%)'
-                  : 'linear-gradient(135deg, rgba(138,43,226,0.4) 0%, rgba(123,31,162,0.3) 50%, rgba(75,0,130,0.2) 100%)',
-              ];
-              return gradients[index - 1] || gradients[0];
+              
+              // Free Tier and Business - Same look with lighter accent color
+              if (tier.title === 'Free Tier' || tier.title === 'Business') {
+                return `linear-gradient(135deg, ${lightAccent1} 0%, ${lightAccent2} 50%, ${lightAccent3} 100%)`;
+              }
+              
+              // Enterprise - Gold/Amber
+              return colors.isDark
+                ? 'linear-gradient(135deg, rgba(255,193,7,0.3) 0%, rgba(255,152,0,0.2) 50%, rgba(255,111,0,0.1) 100%)'
+                : 'linear-gradient(135deg, rgba(255,193,7,0.4) 0%, rgba(255,152,0,0.3) 50%, rgba(255,111,0,0.2) 100%)';
             };
 
             const getPremiumShadow = () => {
               if (tier.isHighlighted) {
+                const accentGlow1 = `rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, ${colors.isDark ? '0.5' : '0.4'})`;
+                const accentGlow2 = `rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, ${colors.isDark ? '0.2' : '0.15'})`;
                 return colors.isDark 
-                  ? '0 0 40px rgba(79,163,255,0.5), 0 0 80px rgba(79,163,255,0.2)'
-                  : '0 0 30px rgba(79,163,255,0.3), 0 0 60px rgba(79,163,255,0.1)';
+                  ? `0 0 40px ${accentGlow1}, 0 0 80px ${accentGlow2}`
+                  : `0 0 30px ${accentGlow1}, 0 0 60px ${accentGlow2}`;
               }
-              const shadows = [
-                // Free Tier - Silver glow
-                colors.isDark
-                  ? '0 0 30px rgba(192,192,192,0.3), 0 0 60px rgba(192,192,192,0.1)'
-                  : '0 0 25px rgba(192,192,192,0.2), 0 0 50px rgba(192,192,192,0.1)',
-                // Business - Gold glow
-                colors.isDark
-                  ? '0 0 30px rgba(255,193,7,0.3), 0 0 60px rgba(255,152,0,0.1)'
-                  : '0 0 25px rgba(255,193,7,0.2), 0 0 50px rgba(255,152,0,0.1)',
-                // Enterprise - Purple glow
-                colors.isDark
-                  ? '0 0 30px rgba(138,43,226,0.3), 0 0 60px rgba(123,31,162,0.1)'
-                  : '0 0 25px rgba(138,43,226,0.2), 0 0 50px rgba(123,31,162,0.1)',
-              ];
-              return shadows[index - 1] || shadows[0];
+              
+              // Free Tier and Business - Same look with lighter accent glow
+              if (tier.title === 'Free Tier' || tier.title === 'Business') {
+                return colors.isDark
+                  ? `0 0 30px ${lightAccentGlow}, 0 0 60px ${lightAccent3}`
+                  : `0 0 25px ${lightAccentGlow}, 0 0 50px ${lightAccent3}`;
+              }
+              
+              // Enterprise - Gold glow
+              return colors.isDark
+                ? '0 0 30px rgba(255,193,7,0.3), 0 0 60px rgba(255,152,0,0.1)'
+                : '0 0 25px rgba(255,193,7,0.2), 0 0 50px rgba(255,152,0,0.1)';
             };
 
             const getBorderColor = () => {
               if (tier.isHighlighted) return accentColor;
-              const colors_arr = [
-                colors.isDark ? 'rgba(192,192,192,0.5)' : 'rgba(192,192,192,0.6)',
-                colors.isDark ? 'rgba(255,193,7,0.5)' : 'rgba(255,193,7,0.6)',
-                colors.isDark ? 'rgba(138,43,226,0.5)' : 'rgba(138,43,226,0.6)',
-              ];
-              return colors_arr[index - 1] || colors_arr[0];
+              
+              // Free Tier and Business - Same look with lighter accent border
+              if (tier.title === 'Free Tier' || tier.title === 'Business') {
+                return lightAccentBorder;
+              }
+              
+              // Enterprise - Gold border
+              return colors.isDark ? 'rgba(255,193,7,0.5)' : 'rgba(255,193,7,0.6)';
             };
 
             return (
@@ -221,7 +236,9 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
                   style={{
                     background: getPremiumGradient(),
                     boxShadow: tier.isHighlighted 
-                      ? (colors.isDark ? '0 0 20px rgba(79,163,255,0.3)' : '0 0 15px rgba(79,163,255,0.2)')
+                      ? (colors.isDark 
+                          ? `0 0 20px rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, 0.3)` 
+                          : `0 0 15px rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, 0.2)`)
                       : 'none',
                   }}
                 >
@@ -231,7 +248,7 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
                       style={{
                         backgroundColor: accentColor,
                         color: colors.isDark ? "#0B1B3B" : "white",
-                        boxShadow: `0 0 20px ${accentColor}80`,
+                        boxShadow: `0 0 20px rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, 0.5)`,
                       }}
                     >
                       Most Popular
