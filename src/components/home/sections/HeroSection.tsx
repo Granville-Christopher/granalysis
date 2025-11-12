@@ -126,8 +126,8 @@ export const HeroSection = ({ colors }: { colors: ThemeConfig }) => {
         <div className="flex flex-wrap justify-center gap-6 mb-10">
           <div className={`px-4 py-2 rounded-lg backdrop-blur-md border ${colors.isDark ? 'bg-white/5 border-white/10' : 'bg-white/80 border-gray-200'}`}>
             <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4" style={{ color: accentColor }} />
-              <span className={`text-sm ${colors.textSecondary}`}>Insights Generated Today:</span>
+              <Zap className="md:w-4 md:h-4 w-3 h-3" style={{ color: accentColor }} />
+              <span className={`md:text-sm text-xs ${colors.textSecondary}`}>Insights Generated Today:</span>
               <span className={`font-bold ${colors.text}`} style={{ color: accentColor }}>
                 <AnimatedNumber endValue={liveStats.insights} />
               </span>
@@ -135,8 +135,8 @@ export const HeroSection = ({ colors }: { colors: ThemeConfig }) => {
           </div>
           <div className={`px-4 py-2 rounded-lg backdrop-blur-md border ${colors.isDark ? 'bg-white/5 border-white/10' : 'bg-white/80 border-gray-200'}`}>
             <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" style={{ color: accentColor }} />
-              <span className={`text-sm ${colors.textSecondary}`}>Forecast Accuracy:</span>
+              <TrendingUp className="md:w-4 md:h-4 w-3 h-3" style={{ color: accentColor }} />
+              <span className={`md:text-sm text-xs ${colors.textSecondary}`}>Forecast Accuracy:</span>
               <span className={`font-bold ${colors.text}`} style={{ color: accentColor }}>
                 {liveStats.accuracy}%
               </span>
@@ -147,16 +147,16 @@ export const HeroSection = ({ colors }: { colors: ThemeConfig }) => {
         {/* Trust Indicators */}
         <div className="flex flex-wrap justify-center items-center gap-4 mb-8">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-green-500" />
-            <span className={`text-sm ${colors.textSecondary}`}>No credit card required</span>
+            <CheckCircle2 className="md:w-5 md:h-5 w-4 h-4 text-green-500" />
+            <span className={`md:text-sm text-xs ${colors.textSecondary}`}>No credit card required</span>
           </div>
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-green-500" />
-            <span className={`text-sm ${colors.textSecondary}`}>Free forever plan</span>
+            <CheckCircle2 className="md:w-5 md:h-5 w-4 h-4 text-green-500" />
+            <span className={`md:text-sm text-xs ${colors.textSecondary}`}>Free forever plan</span>
           </div>
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-green-500" />
-            <span className={`text-sm ${colors.textSecondary}`}>Setup in 2 minutes</span>
+            <CheckCircle2 className="md:w-5 md:h-5 w-4 h-4 text-green-500" />
+            <span className={`md:text-sm text-xs ${colors.textSecondary}`}>Setup in 2 minutes</span>
           </div>
         </div>
 
