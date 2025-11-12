@@ -112,7 +112,7 @@ export const HeroSection = ({ colors }: { colors: ThemeConfig }) => {
           <span style={{ color: accentColor }}>AI-Powered</span> Sales Insight
         </h1>
         <p
-          className={`text-xl md:text-2xl mb-8 font-light ${colors.textSecondary} max-w-3xl mx-auto`}
+          className={`text-base md:text-2xl mb-8 font-light ${colors.textSecondary} max-w-3xl mx-auto`}
         >
           Upload your sales data, instantly generate deep AI insights, receive
           accurate forecasts, and get{" "}
@@ -195,7 +195,7 @@ export const HeroSection = ({ colors }: { colors: ThemeConfig }) => {
                   } : {}}
                 >
                   <p className={`text-sm uppercase ${colors.textSecondary}`}>Total Sales (YTD)</p>
-                  <p className={`text-4xl font-extrabold transition-colors duration-300`} style={{ color: accentColor }}>$<AnimatedNumber endValue={245000} /></p>
+                  <p className={`md:text-4xl text-3xl font-extrabold transition-colors duration-300`} style={{ color: accentColor }}>$<AnimatedNumber endValue={245000} /></p>
                 </div>
                 <div 
                   className={`p-4 rounded-xl ${innerCardBg} transition-all duration-300 cursor-pointer ${hoveredCard === 'accuracy' ? 'scale-105' : ''}`}
@@ -206,7 +206,7 @@ export const HeroSection = ({ colors }: { colors: ThemeConfig }) => {
                   } : {}}
                 >
                   <p className={`text-sm uppercase ${colors.textSecondary}`}>Forecast Accuracy</p>
-                  <p className={`text-4xl font-extrabold text-cyan-500 transition-colors duration-300`}><AnimatedNumber endValue={94} />%</p>
+                  <p className={`md:text-4xl text-3xl font-extrabold text-cyan-500 transition-colors duration-300`}><AnimatedNumber endValue={94} />%</p>
                 </div>
                 <div 
                   className={`p-5 rounded-xl border transition-all duration-300 cursor-pointer ${hoveredCard === 'recommendation' ? 'scale-105' : ''} ${colors.isDark ? 'bg-red-900/20 border-red-500/30' : 'bg-red-50/50 border-red-300'}`}
