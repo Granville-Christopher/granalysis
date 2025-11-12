@@ -27,9 +27,9 @@ export const HeroSection = ({ colors }: { colors: ThemeConfig }) => {
 
   const StatBlock = ({ icon: Icon, value, label }: { icon: any; value: string; label: string }) => (
     <div className={`flex flex-col items-center p-4 ${colors.text} transition-transform duration-300 hover:scale-110`}>
-      <Icon className={`w-10 h-10 mb-2 transition-colors duration-300`} style={{ color: accentColor }} />
-      <div className={`text-4xl font-extrabold text-shadow-glow`} style={{ color: accentColor }}>{value}</div>
-      <div className={`text-sm font-light uppercase tracking-wider mt-1 ${colors.textSecondary}`}>{label}</div>
+      <Icon className={`w-5 h-5 md:w-10 md:h-10 mb-2 transition-colors duration-300`} style={{ color: accentColor }} />
+      <div className={`text-2xl md:text-4xl font-extrabold text-shadow-glow`} style={{ color: accentColor }}>{value}</div>
+      <div className={`text-xs md:text-sm font-light uppercase tracking-wider mt-1 ${colors.textSecondary}`}>{label}</div>
     </div>
   );
 
