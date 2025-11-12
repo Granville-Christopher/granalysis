@@ -128,7 +128,7 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
             }`}
             style={{
               width: annual ? 'calc(60%)' : 'calc(30% )',
-              transform: annual ? 'translateX(calc(60% - 3px))' : 'translateX(0)',
+              transform: annual ? 'translateX(calc(60% - 4px))' : 'translateX(0)',
             }}
           />
           <button
@@ -153,7 +153,7 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-8">
           {pricingData.map((tier) => {
             const { monthlyPrice, annualPrice } = computePrices(tier.price);
             
@@ -211,14 +211,14 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
 
                     <div className="my-6">
                       <div className="flex flex-col items-center">
-                        <div className="flex items-baseline">
+                        <div className="flex items-baseline font-extralight">
                           <span
-                            className={`md:text-5xl text-2xl font-extrabold ${colors.text}`}
+                            className={`md:text-5xl text-2xl font- ${colors.text}`}
                           >
                             $
                           </span>
                           <span
-                            className={`md:text-7xl text-4xl font-extrabold ${colors.text}`}
+                            className={`md:text-7xl text-5xl  ${colors.text}`}
                           >
                             <AnimatedNumber
                               key={annual ? "annual" : "monthly"}
@@ -247,7 +247,7 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
                               <span className="md:text-sm text-xs opacity-70">
                                 ${(annualPrice / 12).toLocaleString()}
                               </span>
-                              <span className="text-xs ml-1">
+                              <span className="md:text-xs text-xs ml-1">
                                 /mo (annual equivalent)
                               </span>
                             </>
@@ -263,7 +263,7 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
                           className={`flex items-center ${colors.textSecondary}`}
                         >
                           <Zap
-                            className={`w-4 h-4 mr-3 ${
+                            className={`md:w-4 w-3 md:h-4 h-3 md:mr-3 mr-2 text-xs md:text-base${
                               tier.isHighlighted ? "" : "text-green-500"
                             }`}
                             style={{
@@ -272,7 +272,7 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
                                 : undefined,
                             }}
                           />
-                          <span className="text-sm">{feature}</span>
+                          <span className="md:text-sm text-xs">{feature}</span>
                         </div>
                       ))}
                     </div>
