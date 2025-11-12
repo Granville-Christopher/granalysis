@@ -165,7 +165,7 @@ const ForgotPassword: React.FC = () => {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:mt-0 mt-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:mt-0 mt-12">
             {/* Request OTP Form */}
             <div
               className="rounded-3xl md:p-8 p-4 space-y-6"
