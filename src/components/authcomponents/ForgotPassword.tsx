@@ -1,6 +1,13 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { Moon, Sun, Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
+import { Theme, ThemeConfig, THEME_CONFIG } from "../home/theme";
 
 const ForgotPassword: React.FC = () => {
+  const [theme, setTheme] = useState<Theme>('dark');
+  const colors: ThemeConfig = theme === 'dark' ? THEME_CONFIG.dark : THEME_CONFIG.light;
+  const accentColor = colors.accent;
+
   // State for email-only form
   const [email, setEmail] = useState("");
   // State for reset form
@@ -10,125 +17,371 @@ const ForgotPassword: React.FC = () => {
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
 
   const handleSendOtp = (e: React.FormEvent) => {
-    // Dummy OTP send logic
-  
-    alert("OTP sent to " + email);
+    e.preventDefault();
+    if (!email) {
+      setError("Please enter your email address.");
+      return;
+    }
+    setError("");
+    setOtpSent(true);
+    setSuccess("OTP sent to " + email);
+    // TODO: Implement actual OTP sending logic
   };
 
   const handleResetPassword = (e: React.FormEvent) => {
     e.preventDefault();
-    // Dummy reset logic
     if (!resetEmail || !otp || !newPassword || !confirmNewPassword) {
-      alert("Please fill in all fields.");
+      setError("Please fill in all fields.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setError("Password must be at least 8 characters.");
       return;
     }
     if (newPassword !== confirmNewPassword) {
-      alert("Passwords do not match.");
+      setError("Passwords do not match.");
       return;
     }
-    alert("Password reset successful!");
+    setError("");
+    setSuccess("Password reset successful!");
+    // TODO: Implement actual password reset logic
+  };
+
+  const backgroundStyle = colors.isDark
+    ? `radial-gradient(ellipse at center, #1A345B 0%, ${colors.bg} 100%)`
+    : `linear-gradient(180deg, #F9FAFB 0%, ${colors.bg} 100%)`;
+
+  const networkGlow = colors.isDark ? '#4FA3FF' : '#1D4ED8';
+
+  // Enhanced glassmorphism for cards
+  const cardStyle = {
+    background: colors.isDark 
+      ? 'rgba(255, 255, 255, 0.05)' 
+      : 'rgba(255, 255, 255, 0.7)',
+    backdropFilter: 'blur(20px)',
+    border: colors.isDark 
+      ? '1px solid rgba(255, 255, 255, 0.1)' 
+      : '1px solid rgba(255, 255, 255, 0.8)',
+    boxShadow: colors.isDark
+      ? `0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(79, 163, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)`
+      : `0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.9)`,
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="bg-white p-8 rounded shadow-md w-full max-w-2xl flex flex-col md:flex-row gap-8">
-        {/* Email-only form */}
-        <form
-          onSubmit={handleSendOtp}
-          className="flex-1 flex flex-col gap-4 md:max-w-xs"
-        >
-          <h2 className="text-xl font-bold mb-2">Forgot Password</h2>
-          <label className="block font-medium">Email</label>
-          <div className="flex gap-2">
-            <input
-              type="email"
-              className="w-full px-3 py-2 border rounded"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
+    <div 
+      className="min-h-screen transition-colors duration-500 relative overflow-hidden"
+      style={{ 
+        background: backgroundStyle,
+        fontFamily: "Inter, sans-serif"
+      }}
+    >
+      <style>{`
+        body { background-color: ${colors.bg}; transition: background-color 0.5s; }
+        @keyframes float {
+          0%, 100% { transform: translateY(0) translateX(0); }
+          33% { transform: translateY(-30px) translateX(10px); }
+          66% { transform: translateY(30px) translateX(-10px); }
+        }
+        .animate-float { animation: float linear infinite; }
+        @keyframes move-bg { 
+          from { background-position: 0 0; } 
+          to { background-position: 4000px 4000px; } 
+        }
+      `}</style>
+
+      {/* Animated Background */}
+      <div
+        className="absolute inset-0 opacity-20 z-0 pointer-events-none overflow-hidden"
+        style={{
+          backgroundImage: colors.isDark
+            ? `radial-gradient(circle, ${networkGlow} 1px, transparent 1px)`
+            : `radial-gradient(circle, ${networkGlow} 0.5px, transparent 0.5px)`,
+          backgroundSize: "40px 40px",
+          animation: "move-bg 60s linear infinite",
+        }}
+      ></div>
+
+      {/* Floating Particles (Dark Mode Only) */}
+      {colors.isDark && (
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          {[...Array(15)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full animate-float"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                width: `${Math.random() * 4 + 2}px`,
+                height: `${Math.random() * 4 + 2}px`,
+                backgroundColor: accentColor,
+                opacity: Math.random() * 0.5 + 0.2,
+                animationDelay: `${Math.random() * 5}s`,
+                animationDuration: `${Math.random() * 10 + 10}s`,
+              }}
             />
-            <button
-              type="submit"
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition whitespace-nowrap"
+          ))}
+        </div>
+      )}
+
+      {/* Theme Toggle */}
+      <button
+        onClick={toggleTheme}
+        className={`fixed md:top-6 top-3 md:right-6 right-3 z-50 p-3 rounded-full transition-all duration-300 ${colors.text} hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2`}
+        style={{
+          backgroundColor: colors.isDark
+            ? "rgba(255, 255, 255, 0.1)"
+            : "rgba(0, 0, 0, 0.1)",
+          backdropFilter: "blur(10px)",
+        }}
+        aria-label="Toggle theme"
+      >
+        {colors.isDark ? (
+          <Sun className="w-5 h-5 text-yellow-400" />
+        ) : (
+          <Moon className="w-5 h-5 text-gray-800" />
+        )}
+      </button>
+
+      <div className="relative z-10 min-h-screen flex items-center justify-center md:p-6 p-4">
+        <div className="w-full max-w-4xl">
+          {/* Back to Login Link */}
+          <div className="mb-6 fixed top-3 left-3 z-50 bg-white/10 backdrop-blur-sm p-2 rounded-lg">
+            <Link
+              to="/login"
+              className={`inline-flex items-center gap-2 ${colors.textSecondary} hover:${colors.text} transition-colors`}
+              style={{ color: accentColor }}
             >
-              Get OTP
-            </button>
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to login</span>
+            </Link>
           </div>
-        </form>
-        {/* Reset form */}
-        <form
-          onSubmit={handleResetPassword}
-          className="flex-1 flex flex-col gap-4"
-        >
-          <h2 className="text-xl font-bold mb-2 md:mt-0 mt-8">
-            Reset Password
-          </h2>
-          <label className="block font-medium">Email</label>
-          <input
-            type="email"
-            className="w-full px-3 py-2 border rounded"
-            value={resetEmail}
-            onChange={(e) => setResetEmail(e.target.value)}
-            required
-          />
-          <label className="block font-medium">OTP</label>
-          <input
-            type="text"
-            className="w-full px-3 py-2 border rounded"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            required
-          />
-          <label className="block font-medium">New Password</label>
-          <div className="relative">
-            <input
-              type={showNewPassword ? "text" : "password"}
-              className="w-full px-3 py-2 border rounded pr-10"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              required
-            />
-            <button
-              type="button"
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
-              onClick={() => setShowNewPassword((prev) => !prev)}
-              tabIndex={-1}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:mt-0 mt-8">
+            {/* Request OTP Form */}
+            <div
+              className="rounded-3xl md:p-8 p-4 space-y-6"
+              style={cardStyle}
             >
-              {showNewPassword ? "Hide" : "Show"}
-            </button>
-          </div>
-          <label className="block font-medium">Confirm New Password</label>
-          <div className="relative">
-            <input
-              type={showConfirmNewPassword ? "text" : "password"}
-              className="w-full px-3 py-2 border rounded pr-10"
-              value={confirmNewPassword}
-              onChange={(e) => setConfirmNewPassword(e.target.value)}
-              required
-            />
-            <button
-              type="button"
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
-              onClick={() => setShowConfirmNewPassword((prev) => !prev)}
-              tabIndex={-1}
+              <div className="text-center mb-6">
+                <h2 className={`md:text-3xl text-xl font-bold mb-2 ${colors.text}`}>
+                  Forgot Password
+                </h2>
+                <p className={`${colors.textSecondary} md:text-base text-xs`}>
+                  Enter your email to receive a reset code
+                </p>
+              </div>
+
+              {success && !otpSent && (
+                <div className={`p-4 rounded-lg bg-green-500/20 border border-green-500/50 ${colors.text}`}>
+                  {success}
+                </div>
+              )}
+              {error && !otpSent && (
+                <div className={`p-4 rounded-lg bg-red-500/20 border border-red-500/50 ${colors.text}`}>
+                  {error}
+                </div>
+              )}
+
+              <form onSubmit={handleSendOtp} className="space-y-5">
+                <div>
+                  <label
+                    className={`block mb-2 font-medium ${colors.textSecondary} flex items-center space-x-2`}
+                  >
+                    <Mail className="w-4 h-4" />
+                    <span className="md:text-base text-xs">Email</span>
+                  </label>
+                  <input
+                    type="email"
+                    className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                      colors.isDark
+                        ? "bg-white/5 border-white/10 text-white placeholder-gray-400 focus:border-blue-400 focus:ring-blue-400/50"
+                        : "bg-white/80 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500/50"
+                    }`}
+                    style={{ backdropFilter: "blur(10px)" }}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-3 text-sm md:text-base rounded-xl font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2"
+                  style={{
+                    backgroundColor: accentColor,
+                    boxShadow: `0 4px 15px ${accentColor}40`,
+                  }}
+                >
+                  Get OTP
+                </button>
+              </form>
+            </div>
+
+            {/* Reset Password Form */}
+            <div
+              className="rounded-3xl md:p-8 p-4 space-y-6"
+              style={cardStyle}
             >
-              {showConfirmNewPassword ? "Hide" : "Show"}
-            </button>
+              <div className="text-center mb-6">
+                <h2 className={`md:text-3xl text-xl font-bold mb-2 ${colors.text}`}>
+                  Reset Password
+                </h2>
+                <p className={`${colors.textSecondary} md:text-base text-xs`}>
+                  Enter OTP and new password
+                </p>
+              </div>
+
+              {success && otpSent && (
+                <div className={`p-4 rounded-lg bg-green-500/20 border border-green-500/50 ${colors.text}`}>
+                  {success}
+                </div>
+              )}
+              {error && otpSent && (
+                <div className={`p-4 rounded-lg bg-red-500/20 border border-red-500/50 ${colors.text}`}>
+                  {error}
+                </div>
+              )}
+
+              <form onSubmit={handleResetPassword} className="space-y-5">
+                <div>
+                  <label
+                    className={`block mb-2 font-medium ${colors.textSecondary} flex items-center space-x-2`}
+                  >
+                    <Mail className="w-4 h-4" />
+                    <span className="md:text-base text-xs">Email</span>
+                  </label>
+                  <input
+                    type="email"
+                    className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                      colors.isDark
+                        ? "bg-white/5 border-white/10 text-white placeholder-gray-400 focus:border-blue-400 focus:ring-blue-400/50"
+                        : "bg-white/80 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500/50"
+                    }`}
+                    style={{ backdropFilter: "blur(10px)" }}
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className={`block mb-2 font-medium ${colors.textSecondary} flex items-center space-x-2`}
+                  >
+                    <Lock className="w-4 h-4" />
+                    <span className="md:text-base text-xs">OTP Code</span>
+                  </label>
+                  <input
+                    type="text"
+                    className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                      colors.isDark
+                        ? "bg-white/5 border-white/10 text-white placeholder-gray-400 focus:border-blue-400 focus:ring-blue-400/50"
+                        : "bg-white/80 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500/50"
+                    }`}
+                    style={{ backdropFilter: "blur(10px)" }}
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    placeholder="Enter OTP code"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className={`block mb-2 font-medium ${colors.textSecondary} flex items-center space-x-2`}
+                  >
+                    <Lock className="w-4 h-4" />
+                    <span className="md:text-base text-xs">New Password</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 pr-12 ${
+                        colors.isDark
+                          ? "bg-white/5 border-white/10 text-white placeholder-gray-400 focus:border-blue-400 focus:ring-blue-400/50"
+                          : "bg-white/80 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500/50"
+                      }`}
+                      style={{ backdropFilter: "blur(10px)" }}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Enter new password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${colors.textSecondary} hover:${colors.text} transition-colors`}
+                      tabIndex={-1}
+                    >
+                      {showNewPassword ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    className={`block mb-2 font-medium ${colors.textSecondary} flex items-center space-x-2`}
+                  >
+                    <Lock className="w-4 h-4" />
+                    <span className="md:text-base text-xs">Confirm New Password</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmNewPassword ? "text" : "password"}
+                      className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 pr-12 ${
+                        colors.isDark
+                          ? "bg-white/5 border-white/10 text-white placeholder-gray-400 focus:border-blue-400 focus:ring-blue-400/50"
+                          : "bg-white/80 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500/50"
+                      }`}
+                      style={{ backdropFilter: "blur(10px)" }}
+                      value={confirmNewPassword}
+                      onChange={(e) => setConfirmNewPassword(e.target.value)}
+                      placeholder="Confirm new password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                      className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${colors.textSecondary} hover:${colors.text} transition-colors`}
+                      tabIndex={-1}
+                    >
+                      {showConfirmNewPassword ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-3 text-sm md:text-base rounded-xl font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2"
+                  style={{
+                    backgroundColor: accentColor,
+                    boxShadow: `0 4px 15px ${accentColor}40`,
+                  }}
+                >
+                  Reset Password
+                </button>
+              </form>
+            </div>
           </div>
-          <button
-            type="submit"
-            className="bg-green-600 text-white py-2 rounded hover:bg-green-700 transition mt-2"
-          >
-            Reset Password
-          </button>
-        </form>
-        {/* Back to login link under reset form */}
-        <div className="w-full md:w-auto mt-6 text-center text-sm">
-          <a href="/login" className="text-blue-600 hover:underline">
-            &larr; Back to login
-          </a>
         </div>
       </div>
     </div>

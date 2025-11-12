@@ -1,9 +1,8 @@
 import React from "react";
-import Login from "../components/authcomponents/Login";
+import UnifiedAuth from "../components/authcomponents/UnifiedAuth";
 
 const LoginPage: React.FC = () => {
-  // No overlay switching on standalone page
-  return <Login onShowCodeLogin={undefined} />;
+  return <UnifiedAuth />;
 };
 
 export default LoginPage;

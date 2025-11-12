@@ -1,8 +1,8 @@
 import React from "react";
-import Signup from "../components/authcomponents/Signup";
+import UnifiedAuth from "../components/authcomponents/UnifiedAuth";
 
 const SignupPage: React.FC = () => {
-  return <Signup />;
+  return <UnifiedAuth />;
 };
 
 export default SignupPage;
