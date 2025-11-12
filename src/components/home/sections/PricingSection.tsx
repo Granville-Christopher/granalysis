@@ -211,14 +211,14 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
 
                     <div className="my-6">
                       <div className="flex flex-col items-center">
-                        <div className="flex items-baseline font-extralight">
+                        <div className="flex items-baseline font-semibold">
                           <span
-                            className={`md:text-5xl text-2xl font- ${colors.text}`}
+                            className={`md:text-5xl text-2xl font-semibold ${colors.text}`}
                           >
                             $
                           </span>
                           <span
-                            className={`md:text-7xl text-5xl  ${colors.text}`}
+                            className={`md:text-7xl text-5xl font-semibold ${colors.text}`}
                           >
                             <AnimatedNumber
                               key={annual ? "annual" : "monthly"}
@@ -226,7 +226,7 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
                             />
                           </span>
                           <span
-                            className={`md:text-2xl text-sm font-light ${colors.textSecondary} ml-1`}
+                            className={`md:text-2xl text-sm font-semibold ${colors.textSecondary} ml-1`}
                           >
                             {annual ? "/yr" : "/mo"}
                           </span>
