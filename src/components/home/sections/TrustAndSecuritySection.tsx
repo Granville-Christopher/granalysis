@@ -116,7 +116,7 @@ export const TrustAndSecuritySection = ({ colors }: { colors: ThemeConfig }) => 
                 </div>
                 <div>
                   <span
-                    className={`md:absolute md:-top-2 md:-right-2 absolute -top-1 -right-1 px-2 py-0.5 text-xs font-bold rounded-full ${
+                    className={`md:absolute md:-top-2 md:-right-2 absolute top-2 right-2 px-2 py-0.5 text-xs font-bold rounded-full ${
                       colors.isDark
                         ? "bg-green-900/40 text-green-400 border border-green-500/40"
                         : "bg-green-100 text-green-700 border border-green-300"
