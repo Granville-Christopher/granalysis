@@ -29,8 +29,8 @@ export const FAQSection = ({ colors }: { colors: ThemeConfig }) => {
   return (
     <div className="py-24 transition-colors duration-500" id="faq" style={{ backgroundColor: colors.secondaryBg }}>
       <div className="container mx-auto px-6 max-w-4xl">
-        <h2 className={`text-5xl font-bold text-center mb-4 ${colors.text}`}>You Ask. Granalysis Answers.</h2>
-        <p className={`text-xl text-center mb-8 ${colors.textSecondary}`}>Clear answers that articulate our core value proposition.</p>
+        <h2 className={`md:text-5xl text-3xl font-bold text-center mb-4 ${colors.text}`}>You Ask. Granalysis Answers.</h2>
+        <p className={`md:text-xl text-base text-center mb-8 ${colors.textSecondary}`}>Clear answers that articulate our core value proposition.</p>
 
         {/* Search Bar */}
         <div className="mb-12 relative max-w-2xl mx-auto">
@@ -47,7 +47,7 @@ export const FAQSection = ({ colors }: { colors: ThemeConfig }) => {
 
         {filteredFAQs.length === 0 && (
           <div className="text-center py-12">
-            <p className={`text-lg ${colors.textSecondary} mb-4`}>No questions found matching your search.</p>
+            <p className={`md:text-lg text-base ${colors.textSecondary} mb-4`}>No questions found matching your search.</p>
             <Button 
               colors={colors} 
               variant="secondary"
@@ -78,7 +78,7 @@ export const FAQSection = ({ colors }: { colors: ThemeConfig }) => {
                       onClick={() => toggleQuestion(index)}
                       className="w-full flex justify-between items-center text-left focus:outline-none"
                     >
-                      <span className={`text-xl font-semibold hover:opacity-80 transition-colors duration-300 ${colors.text}`}>
+                      <span className={`md:text-xl text-lg font-semibold hover:opacity-80 transition-colors duration-300 ${colors.text}`}>
                         {item.question}
                       </span>
                       <ChevronDown
@@ -95,7 +95,7 @@ export const FAQSection = ({ colors }: { colors: ThemeConfig }) => {
                         marginTop: isOpen ? '1rem' : '0',
                       }}
                     >
-                      <p className={`pt-4 ${colors.text} border-t ${colors.isDark ? 'border-white/10' : 'border-gray-300'} mt-4 text-lg`}>
+                      <p className={`pt-4 ${colors.text} border-t ${colors.isDark ? 'border-white/10' : 'border-gray-300'} mt-4 md:text-lg text-base`}>
                         <span dangerouslySetInnerHTML={{ __html: item.answer }} />
                       </p>
                     </div>
