@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Clock, ChevronUp, ChevronDown, X } from 'lucide-react';
 import { ThemeConfig, getGlassmorphismClass } from '../theme';
 import { healthMetrics } from '../data';
@@ -6,8 +6,51 @@ import { healthMetrics } from '../data';
 export const LiveSystemHealthBar = ({ colors }: { colors: ThemeConfig }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
+  const [liveValues, setLiveValues] = useState<{ [key: string]: string }>({});
   const glassmorphismClass = getGlassmorphismClass(colors);
   const accentColor = colors.accent;
+
+  // Initialize live values from healthMetrics
+  useEffect(() => {
+    const initialValues: { [key: string]: string } = {};
+    healthMetrics.forEach(metric => {
+      initialValues[metric.label] = metric.value;
+    });
+    setLiveValues(initialValues);
+  }, []);
+
+  // Update values periodically to simulate live data
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLiveValues(prev => {
+        const updated = { ...prev };
+        healthMetrics.forEach(metric => {
+          if (metric.label === 'API Latency') {
+            // Vary between 30-40ms
+            const base = 35;
+            const variation = (Math.random() - 0.5) * 10;
+            const newValue = Math.round(base + variation);
+            updated[metric.label] = `${newValue}ms`;
+          } else if (metric.label === 'Uptime') {
+            // Vary between 99.97-99.99%
+            const base = 99.98;
+            const variation = (Math.random() - 0.5) * 0.02;
+            const newValue = base + variation;
+            updated[metric.label] = `${newValue.toFixed(2)}%`;
+          } else if (metric.label === 'AI Response') {
+            // Vary between 1.0-1.4s
+            const base = 1.2;
+            const variation = (Math.random() - 0.5) * 0.4;
+            const newValue = base + variation;
+            updated[metric.label] = `${newValue.toFixed(1)}s`;
+          }
+        });
+        return updated;
+      });
+    }, 2000); // Update every 2 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   if (isDismissed) return null;
 
@@ -34,7 +77,9 @@ export const LiveSystemHealthBar = ({ colors }: { colors: ThemeConfig }) => {
               {healthMetrics.map(metric => (
                 <div key={metric.label} className="flex items-center space-x-1">
                   <span className={`hidden md:inline ${colors.textSecondary}`}>{metric.label}:</span>
-                  <span className={`font-mono font-bold ${metric.color}`}>{metric.value}</span>
+                  <span className={`font-mono font-bold transition-all duration-500 ${metric.color}`}>
+                    {liveValues[metric.label] || metric.value}
+                  </span>
                   <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: metric.color.includes('green') ? 'rgb(74, 222, 128)' : 'rgb(251, 191, 36)' }}></div>
                 </div>
               ))}
@@ -71,7 +116,9 @@ export const LiveSystemHealthBar = ({ colors }: { colors: ThemeConfig }) => {
                     <span className={`${colors.textSecondary}`}>{metric.label}</span>
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: metric.color.includes('green') ? 'rgb(74, 222, 128)' : 'rgb(251, 191, 36)' }}></div>
                   </div>
-                  <div className={`font-mono font-bold text-lg ${metric.color}`}>{metric.value}</div>
+                  <div className={`font-mono font-bold text-lg transition-all duration-500 ${metric.color}`}>
+                    {liveValues[metric.label] || metric.value}
+                  </div>
                   <div className={`text-xs ${colors.textSecondary} mt-1`}>All systems operational</div>
                 </div>
               ))}
