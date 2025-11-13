@@ -54,10 +54,9 @@ export const Button = ({ children, className = '', glow = true, variant = 'prima
       >
         <span className={`absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300`} style={{
           backgroundImage: bgImage,
-          filter: 'blur(10px)',
-          zIndex: -1
+          zIndex: 0
         }}></span>
-        <span className={`relative px-5 py-2.5 transition-all ease-in duration-75 ${primaryBg} rounded-md ${textClass} ${hoverClass}`} style={spanStyle}>
+        <span className={`relative px-5 py-2.5 transition-all ease-in duration-75 bg-transparent rounded-md ${textClass} ${hoverClass}`} style={{...spanStyle, zIndex: 1}}>
           {children}
         </span>
       </button>

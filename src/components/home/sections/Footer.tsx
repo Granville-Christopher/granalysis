@@ -96,9 +96,9 @@ export const Footer = ({ colors }: { colors: ThemeConfig }) => {
                 onChange={(e) => setEmail(e.target.value)}
                 className={`flex-1 px-4 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                   colors.isDark
-                    ? "bg-white/5 border-white/10 text-white placeholder-gray-400"
-                    : "bg-white border-gray-200 text-gray-900 placeholder-gray-500"
-                }`}
+                    ? "bg-white/5 border-white/10 placeholder-gray-400"
+                    : "bg-white border-gray-200 placeholder-gray-500"
+                } ${colors.text}`}
                 style={
                   { "--tw-ring-color": accentColor } as React.CSSProperties & {
                     "--tw-ring-color"?: string;

@@ -1,4 +1,7 @@
 import React, { useState, DragEvent } from "react";
+import { X, Upload as UploadIcon } from "lucide-react";
+import { THEME_CONFIG, ThemeConfig, getGlassmorphismClass } from "../home/theme";
+import { useTheme } from "../../contexts/ThemeContext";
 
 interface FileUploadOverlayProps {
   onFileUploaded: (file: File) => void;
@@ -52,26 +55,37 @@ const FileUploadOverlay: React.FC<FileUploadOverlayProps> = ({
     setFile(null);
   };
 
+  const { isDark } = useTheme();
+  const colors: ThemeConfig = isDark ? THEME_CONFIG.dark : THEME_CONFIG.light;
+  const glassmorphismClass = getGlassmorphismClass(colors);
+
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-40">
+    <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-md" onClick={onClose} />
       <div
-        className="relative w-full max-w-lg p-8 rounded-xl border-2 border-dashed bg-white dark:bg-gray-800 shadow-xl flex flex-col items-center"
-        style={{ minHeight: 400 }}
+        className={`relative w-full max-w-lg p-8 rounded-xl border-2 border-dashed flex flex-col items-center ${glassmorphismClass}`}
+        style={{ 
+          minHeight: 400,
+          boxShadow: colors.cardShadow,
+          borderColor: colors.isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
+        }}
         onDragOver={(e) => handleDrag(e, true)}
         onDragLeave={(e) => handleDrag(e, false)}
         onDrop={handleDrop}
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-2xl z-50 transition-colors"
+          className={`absolute top-4 right-4 p-2 rounded-full transition-colors z-50 ${
+            colors.isDark ? 'text-gray-400 hover:text-white hover:bg-white/10' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+          }`}
           type="button"
         >
-          &times;
+          <X className="w-5 h-5" />
         </button>
-        <h2 className="text-2xl font-bold mb-4 dark:text-gray-100">
+        <h2 className={`text-2xl font-bold mb-4 ${colors.text}`}>
           Upload a File
         </h2>
-        <p className="text-gray-600 dark:text-gray-300 mb-6 text-center">
+        <p className={`${colors.textSecondary} mb-6 text-center`}>
           Upload your CSV, Excel, or SQL files and instantly preview, analyze,
           and export results.
         </p>
@@ -89,9 +103,9 @@ const FileUploadOverlay: React.FC<FileUploadOverlayProps> = ({
         >
           {file ? (
             <div className="flex flex-col items-center space-y-4">
-              <p className="text-gray-800 dark:text-gray-100 font-medium text-sm sm:text-base">
+              <p className={`${colors.text} font-medium text-sm sm:text-base`}>
                 Selected File:{" "}
-                <span className="font-semibold text-blue-700 dark:text-blue-300">
+                <span className="font-semibold" style={{ color: colors.accent }}>
                   {file.name}
                 </span>
               </p>
@@ -99,13 +113,18 @@ const FileUploadOverlay: React.FC<FileUploadOverlayProps> = ({
                 <button
                   type="button"
                   onClick={handleClearFile}
-                  className="px-4 py-2 bg-red-500 text-white font-semibold rounded-lg shadow-md hover:bg-red-600 dark:hover:bg-red-700 transition-colors duration-200"
+                  className="px-4 py-2 bg-red-500 text-white font-semibold rounded-lg shadow-md hover:bg-red-600 transition-all duration-200"
+                  style={{ boxShadow: '0 4px 15px rgba(239, 68, 68, 0.4)' }}
                 >
                   Clear File
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors duration-200"
+                  className="px-4 py-2 text-white font-semibold rounded-lg shadow-md transition-all duration-200"
+                  style={{
+                    background: `linear-gradient(135deg, ${colors.accent} 0%, ${colors.accent}80 100%)`,
+                    boxShadow: `0 4px 15px ${colors.accent}40`,
+                  }}
                 >
                   Submit File
                 </button>
@@ -114,14 +133,21 @@ const FileUploadOverlay: React.FC<FileUploadOverlayProps> = ({
           ) : (
             <button
               type="button"
-              className={`px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow-md hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${
+              className={`px-6 py-3 rounded-lg font-semibold shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 text-white flex items-center gap-2 ${
                 dragActive ? "opacity-80" : ""
               }`}
+              style={{
+                background: `linear-gradient(135deg, ${colors.accent} 0%, ${colors.accent}80 100%)`,
+                boxShadow: `0 4px 15px ${colors.accent}40`,
+              }}
               onClick={() => fileInputRef.current?.click()}
             >
-              {dragActive
-                ? "Drop your file here"
-                : "Click to upload or drag a file here"}
+              <UploadIcon className="w-5 h-5" />
+              <span>
+                {dragActive
+                  ? "Drop your file here"
+                  : "Click to upload or drag a file here"}
+              </span>
             </button>
           )}
         </form>

@@ -2,10 +2,54 @@ import { BarChart3, CloudUpload, DollarSign, ShieldCheck, TrendingUp, Users, Zap
 import { FaqItem, FeatureCard, IndustryDetail, PricingTier } from './theme';
 
 export const pricingData: PricingTier[] = [
-  { title: 'Free Tier', price: 0, description: 'Perfect for testing the waters and small personal projects.', features: ['1 file upload/month', 'Max 100 rows per file', 'Basic insights only', 'Email support'], isHighlighted: false },
-  { title: 'Startup', price: 19, description: 'Accelerate your initial growth with full analytical power.', features: ['Up to 5 uploads/month', 'Up to 500 rows per file', 'Full AI insights & reports', 'Sales forecasting', 'Priority support'], isHighlighted: true },
-  { title: 'Business', price: 60, description: 'Advanced features for established, growing sales teams.', features: ['Up to 15 uploads/month', 'Up to 1000 rows per file', 'Advanced insights & modeling', 'Team dashboards & sharing', 'Dedicated account manager'], isHighlighted: false },
-  { title: 'Enterprise', price: 149, description: 'Unlimited scale and premium support for large organizations.', features: ['Unlimited uploads', 'Unlimited rows per file', 'Unlimited DB linking (SQL, NoSQL)', 'All features included', '24/7 Premium Support'], isHighlighted: false },
+  { 
+    title: 'Free Tier', 
+    price: 0, 
+    description: 'Perfect for testing the waters and small personal projects.', 
+    features: [
+      '1 file/month, 100 rows max',
+      'Basic KPIs & 7-day sales trend',
+      'Top 3 products, Top 1 customer',
+      '1 AI insight summary'
+    ], 
+    isHighlighted: false 
+  },
+  { 
+    title: 'Startup', 
+    price: 19, 
+    description: 'Accelerate your initial growth with essential analytics.', 
+    features: [
+      '5 files/month, 500 rows max',
+      '30-day trends & 7-day forecast',
+      'Top 5 products, Top 3 customers',
+      '3 AI recommendations'
+    ], 
+    isHighlighted: true 
+  },
+  { 
+    title: 'Business', 
+    price: 60, 
+    description: 'Professional analytics for data-driven decisions.', 
+    features: [
+      '15 files/month, 1,000 rows max',
+      'Full forecasting & advanced insights',
+      'RFM, CLV, Product Performance Matrix',
+      'All AI recommendations & opportunities'
+    ], 
+    isHighlighted: false 
+  },
+  { 
+    title: 'Enterprise', 
+    price: 149, 
+    description: 'Unlimited scale and premium features for large organizations.', 
+    features: [
+      'Unlimited files & rows',
+      'Database linking & API access',
+      'All advanced analytics & AI features',
+      'Team collaboration & 24/7 support'
+    ], 
+    isHighlighted: false 
+  },
 ];
 
 export const featureCards: FeatureCard[] = [

@@ -1,12 +1,26 @@
-body {
+/* Optimized transitions - only on specific elements, not all */
+html, body {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Disable transitions during theme switch for instant updates */
+html.no-transition *,
+html.no-transition *::before,
+html.no-transition *::after {
+  transition: none !important;
+}
+
+html, body {
   margin: 0;
+  padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #fff;
-  color: #111;
+  background-color: #F9FAFB;
+  color: #111827;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 code {
@@ -14,10 +28,20 @@ code {
     monospace;
 }
 
-/* Tailwind dark mode base */
-body.dark {
-  background-color: #1f2937; /* Tailwind gray-800, matches Header dark mode */
-  color: #f3f4f6;
+/* Tailwind dark mode base - Deep Blue Theme */
+html.dark, body.dark {
+  background-color: #0B1B3B !important; /* Deep blue */
+  color: #ffffff !important;
+}
+
+html.dark *, body.dark * {
+  color: #ffffff;
+}
+
+html.dark .text-gray-900, body.dark .text-gray-900,
+html.dark .text-gray-800, body.dark .text-gray-800,
+html.dark .text-black, body.dark .text-black {
+  color: #ffffff !important;
 }
 
 @tailwind base;

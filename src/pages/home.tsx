@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { THEME_CONFIG, Theme } from '../components/home/theme';
+import React, { useEffect } from 'react';
+import { THEME_CONFIG } from '../components/home/theme';
 import { Header } from '../components/home/sections/Header';
 import { HeroSection } from '../components/home/sections/HeroSection';
 import { HowItWorksSection } from '../components/home/sections/HowItWorksSection';
@@ -16,20 +16,29 @@ import { Footer } from '../components/home/sections/Footer';
 import { LiveSystemHealthBar } from '../components/home/sections/LiveSystemHealthBar';
 
 const Homepage = () => {
-  const [theme, setTheme] = useState<Theme>('dark');
-  const colors = theme === 'dark' ? THEME_CONFIG.dark : THEME_CONFIG.light;
+  const colors = THEME_CONFIG.dark;
 
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
-  };
+  // Set dark mode class on body
+  useEffect(() => {
+    document.body.classList.remove('light-mode');
+    document.body.classList.add('dark-mode');
+  }, []);
 
   return (
-    <div style={{ fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ fontFamily: 'Inter, sans-serif' }} className="dark-mode">
       <style>{`
-        body { background-color: ${colors.bg}; transition: background-color 0.5s; }
-        html { scroll-behavior: smooth; }
+        body { 
+          background-color: ${colors.bg} !important; 
+          color: #ffffff !important;
+          transition: background-color 0.5s, color 0.5s; 
+        }
+        html { 
+          scroll-behavior: smooth; 
+          background-color: ${colors.bg} !important; 
+          color: #ffffff !important;
+        }
         .text-shadow-glow {
-          text-shadow: ${colors.isDark ? "0 0 5px rgba(79, 163, 255, 0.6), 0 0 15px rgba(79, 163, 255, 0.3)" : "none"};
+          text-shadow: 0 0 5px rgba(79, 163, 255, 0.6), 0 0 15px rgba(79, 163, 255, 0.3);
         }
         /* Accessibility: Focus styles */
         *:focus-visible {
@@ -43,7 +52,7 @@ const Homepage = () => {
           top: -40px;
           left: 0;
           background: ${colors.accent};
-          color: ${colors.isDark ? '#0B1B3B' : 'white'};
+          color: #0B1B3B;
           padding: 8px;
           text-decoration: none;
           z-index: 100;
@@ -51,18 +60,13 @@ const Homepage = () => {
         .skip-link:focus {
           top: 0;
         }
-        /* Improved contrast for light mode */
-        ${!colors.isDark ? `
-          a:hover, button:hover {
-            opacity: 0.9;
-          }
-          .text-gray-600 {
-            color: #374151 !important;
-          }
-        ` : ''}
+        /* Ensure all text is visible in dark mode */
+        body, html, main, main *, section, section * {
+          color: #ffffff !important;
+        }
       `}</style>
       <a href="#main-content" className="skip-link">Skip to main content</a>
-      <Header theme={theme} toggleTheme={toggleTheme} colors={colors} />
+      <Header colors={colors} />
       <main id="main-content">
         <HeroSection colors={colors} />
         <HowItWorksSection colors={colors} />

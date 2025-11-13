@@ -54,7 +54,7 @@ export const FeaturesSection = ({ colors }: { colors: ThemeConfig }) => {
                       backgroundColor: accentColor, 
                       boxShadow: colors.isDark ? `0 0 15px ${accentColor}` : `0 4px 10px rgba(29, 78, 216, 0.3)`
                     }}>
-                    <card.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                    <card.icon className={`w-5 h-5 md:w-6 md:h-6 ${colors.isDark ? 'text-white' : 'text-white'}`} />
                   </div>
                   <h3 className={`md:text-2xl text-lg font-semibold mb-2 ${colors.text} group-hover:${colors.text} transition-colors`}>{card.title}</h3>
                   <p className={`${colors.textSecondary} flex-grow transition-colors`}>{card.description}</p>

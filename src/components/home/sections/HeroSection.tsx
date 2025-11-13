@@ -174,7 +174,7 @@ export const HeroSection = ({ colors }: { colors: ThemeConfig }) => {
           </a>
           <button
             onClick={() => window.open('/signup', '_blank')}
-            className={`flex items-center gap-2 px-6 py-4 rounded-lg font-semibold transition-all duration-300 ${colors.isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-900'}`}
+            className={`flex items-center gap-2 px-6 py-4 rounded-lg font-semibold transition-all duration-300 ${colors.isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-100 hover:bg-gray-200'} ${colors.text}`}
           >
             <Play className="w-5 h-5" />
             Try Interactive Demo

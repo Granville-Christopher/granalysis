@@ -5,29 +5,29 @@ export const LIGHT_ACCENT = '#1D4ED8';
 
 export const THEME_CONFIG = {
   dark: {
-    bg: '#0B1B3B',
+    bg: '#0B1B3B', // Deep blue
     secondaryBg: '#1A345B',
     text: 'text-white',
-    textSecondary: 'text-gray-300', // Improved contrast from gray-400
+    textSecondary: 'text-gray-200',
     accent: DARK_ACCENT,
     glassBg: 'bg-white/5',
     glassBorder: 'border-white/10',
-    headerBg: 'rgba(11, 27, 59, 0.4)',
-    headerScrolled: 'rgba(11, 27, 59, 0.85)',
-    cardShadow: `0 0 10px rgba(79, 163, 255, 0.2), 0 0 20px rgba(0, 0, 0, 0.4)`,
+    headerBg: 'rgba(11, 27, 59, 0.8)',
+    headerScrolled: 'rgba(11, 27, 59, 0.95)',
+    cardShadow: 'none', // No glow
     isDark: true,
   },
   light: {
-    bg: '#F9FAFB', // Lighter for better contrast
+    bg: '#F9FAFB',
     secondaryBg: '#FFFFFF',
     text: 'text-gray-900',
-    textSecondary: 'text-gray-700', // Improved contrast from gray-600
+    textSecondary: 'text-gray-700',
     accent: LIGHT_ACCENT,
-    glassBg: 'bg-white/90', // More opaque for better readability
-    glassBorder: 'border-gray-300',
+    glassBg: 'bg-white/80',
+    glassBorder: 'border-gray-200',
     headerBg: 'rgba(255, 255, 255, 0.8)',
     headerScrolled: 'rgba(255, 255, 255, 0.98)',
-    cardShadow: `0 4px 20px rgba(0, 0, 0, 0.12), 0 0 10px rgba(29, 78, 216, 0.15)`, // Enhanced shadow
+    cardShadow: 'none', // No glow
     isDark: false,
   }
 };

@@ -1,7 +1,8 @@
 import React, { useMemo, useState, useRef } from 'react';
-import { Zap, Check, X, TrendingUp } from 'lucide-react';
+import { Zap, Check, X, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
 import { ThemeConfig, getGlassmorphismClass } from '../theme';
 import { pricingData } from '../data';
+import { featureComparison, FeatureRow } from '../../../utils/featureComparison';
 import { ScrollReveal } from '../ui/ScrollReveal';
 import { Button } from '../ui/Button';
 import { AnimatedNumber } from '../ui/AnimatedNumber';
@@ -42,7 +43,6 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
   const lightAccentGlow = `rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, ${colors.isDark ? '0.25' : '0.2'})`;
 
 
-  const allFeatures = ['1 file upload/month', 'Max 100 rows per file', 'Basic insights only', 'Email support', 'Up to 5 uploads/month', 'Up to 500 rows per file', 'Full AI insights & reports', 'Sales forecasting', 'Priority support', 'Up to 15 uploads/month', 'Up to 1000 rows per file', 'Advanced insights & modeling', 'Team dashboards & sharing', 'Dedicated account manager', 'Unlimited uploads', 'Unlimited rows per file', 'Unlimited DB linking (SQL, NoSQL)', 'All features included', '24/7 Premium Support'];
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>, tierTitle: string) => {
     const card = cardRefs.current[tierTitle];
@@ -93,53 +93,118 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
           </span>
         </div>
 
-        <div className="mb-8">
-          <button
-            onClick={() => setShowComparison(!showComparison)}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${colors.isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-100 hover:bg-gray-200'} ${colors.text}`}
-          >
-            {showComparison ? 'Hide' : 'Show'} Comparison Table
-          </button>
-        </div>
-
-        {/* Comparison Table */}
-        {showComparison && (
-          <div className={`mb-12 rounded-lg overflow-hidden ${colors.isDark ? 'bg-white/5 border border-white/10' : 'bg-white border border-gray-200'}`}>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className={`${colors.isDark ? 'bg-white/5' : 'bg-gray-50/50'}`}>
-                    <th className={`px-4 py-3 text-sm font-semibold text-left ${colors.text}`}>Feature</th>
-                    {pricingData.map((tier) => (
-                      <th key={tier.title} className={`px-4 py-3 text-sm font-semibold text-center ${colors.text} ${tier.isHighlighted ? 'border-l border-r' : ''}`} style={{ borderColor: tier.isHighlighted ? accentColor : 'transparent' }}>
-                        {tier.title}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {allFeatures.map((feature, idx) => (
-                    <tr key={idx} className={`border-t ${colors.isDark ? 'border-white/5' : 'border-gray-100'} ${colors.isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50/50'} transition-colors`}>
-                      <td className={`px-4 py-3 text-sm ${colors.textSecondary}`}>{feature}</td>
-                      {pricingData.map((tier) => {
-                        const hasFeature = tier.features.includes(feature);
-                        return (
-                          <td key={tier.title} className={`px-4 py-3 text-center ${tier.isHighlighted ? (colors.isDark ? 'bg-white/5' : 'bg-blue-50/50') : ''}`}>
-                            {hasFeature ? (
-                              <Check className="w-4 h-4 mx-auto text-green-500" />
-                            ) : (
-                              <X className={`w-4 h-4 mx-auto ${colors.isDark ? 'text-gray-600' : 'text-gray-300'}`} />
-                            )}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+        {/* Feature Comparison Table */}
+        <div className="mb-12 max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className={`text-2xl font-bold ${colors.text}`}>Feature Comparison</h3>
+            <button
+              onClick={() => setShowComparison(!showComparison)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                colors.isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-100 hover:bg-gray-200'
+              } ${colors.text}`}
+            >
+              {showComparison ? (
+                <>
+                  <ChevronUp className="w-4 h-4" />
+                  Hide Details
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-4 h-4" />
+                  Show Details
+                </>
+              )}
+            </button>
           </div>
-        )}
+
+          {showComparison && (
+            <div className={`rounded-lg overflow-hidden ${colors.isDark ? 'bg-white/5 border border-white/10' : 'bg-white border border-gray-200'}`}>
+              <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+                <table className="w-full">
+                  <thead className="sticky top-0 z-20">
+                    <tr className={`${colors.isDark ? 'bg-white/5' : 'bg-gray-50/50'}`}>
+                      <th className={`px-4 py-3 text-sm font-semibold text-left ${colors.text} sticky left-0 ${colors.isDark ? 'bg-white/5' : 'bg-gray-50/50'} z-30`}>
+                        Feature
+                      </th>
+                      {pricingData.map((tier) => (
+                        <th
+                          key={tier.title}
+                          className={`px-4 py-3 text-sm font-semibold text-center ${colors.text} ${
+                            tier.isHighlighted ? 'border-l border-r' : ''
+                          }`}
+                          style={{ borderColor: tier.isHighlighted ? accentColor : 'transparent' }}
+                        >
+                          {tier.title}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(
+                      featureComparison.reduce((acc: Record<string, FeatureRow[]>, row: FeatureRow) => {
+                        if (!acc[row.category]) acc[row.category] = [];
+                        acc[row.category].push(row);
+                        return acc;
+                      }, {} as Record<string, FeatureRow[]>)
+                    ).map(([category, rows]: [string, FeatureRow[]]) => (
+                      <React.Fragment key={category}>
+                        <tr className={`${colors.isDark ? 'bg-white/5' : 'bg-gray-50/50'}`}>
+                          <td
+                            colSpan={5}
+                            className={`px-4 py-2 text-xs font-bold uppercase ${colors.textSecondary} sticky left-0 ${colors.isDark ? 'bg-white/5' : 'bg-gray-50/50'} z-20`}
+                          >
+                            {category}
+                          </td>
+                        </tr>
+                        {rows.map((row: FeatureRow, idx: number) => (
+                          <tr
+                            key={`${category}-${idx}`}
+                            className={`border-t ${colors.isDark ? 'border-white/5' : 'border-gray-100'} ${
+                              colors.isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50/50'
+                            } transition-colors`}
+                          >
+                            <td
+                              className={`px-4 py-3 text-sm ${colors.textSecondary} sticky left-0 z-10`}
+                              style={{ backgroundColor: colors.isDark ? '#0B1B3B' : colors.bg }}
+                            >
+                              {row.feature}
+                            </td>
+                            {['free', 'startup', 'business', 'enterprise'].map((tier) => {
+                              const value = row[tier as keyof typeof row];
+                              const hasFeature = value === true || (typeof value === 'string' && value !== '');
+                              return (
+                                <td
+                                  key={tier}
+                                  className={`px-4 py-3 text-center ${
+                                    pricingData.find((t) => t.title.toLowerCase().includes(tier))?.isHighlighted
+                                      ? colors.isDark
+                                        ? 'bg-white/5'
+                                        : 'bg-blue-50/50'
+                                      : ''
+                                  }`}
+                                >
+                                  {hasFeature ? (
+                                    typeof value === 'string' ? (
+                                      <span className={`text-xs font-medium ${colors.text}`}>{value}</span>
+                                    ) : (
+                                      <Check className="w-4 h-4 mx-auto text-green-500" />
+                                    )
+                                  ) : (
+                                    <X className={`w-4 h-4 mx-auto ${colors.isDark ? 'text-gray-600' : 'text-gray-300'}`} />
+                                  )}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                      </React.Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className={`relative inline-flex items-center justify-center mb-16 rounded-full px-2 py-2 ${colors.isDark ? 'bg-white/10' : 'bg-white/10 border border-gray-200'}`}>
           <div
@@ -154,8 +219,8 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
           <button
             className={`relative px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 z-10 ${
               !annual 
-                ? (colors.isDark ? 'text-white' : 'text-gray-900') 
-                : (colors.isDark ? 'text-gray-400' : 'text-gray-500')
+                ? colors.text
+                : colors.textSecondary
             }`}
             onClick={() => setAnnual(false)}
           >
@@ -164,8 +229,8 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
           <button
             className={`relative px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 z-10 ${
               annual 
-                ? (colors.isDark ? 'text-white' : 'text-gray-900') 
-                : (colors.isDark ? 'text-gray-400' : 'text-gray-500')
+                ? colors.text
+                : colors.textSecondary
             }`}
             onClick={() => setAnnual(true)}
           >

@@ -40,7 +40,7 @@ export const FAQSection = ({ colors }: { colors: ThemeConfig }) => {
             placeholder="Search frequently asked questions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 ${colors.isDark ? 'bg-white/5 border-white/10 text-white placeholder-gray-400' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'}`}
+            className={`w-full pl-12 pr-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 ${colors.isDark ? 'bg-white/5 border-white/10 placeholder-gray-400' : 'bg-white border-gray-200 placeholder-gray-500'} ${colors.text}`}
             style={{ '--tw-ring-color': accentColor } as React.CSSProperties & { '--tw-ring-color'?: string }}
           />
         </div>

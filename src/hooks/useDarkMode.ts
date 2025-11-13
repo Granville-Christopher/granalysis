@@ -12,12 +12,15 @@ export default function useDarkMode() {
   });
 
   useEffect(() => {
-    const root = window.document.body;
+    const root = window.document.documentElement;
+    const body = window.document.body;
     if (isDark) {
       root.classList.add("dark");
+      body.classList.add("dark");
       localStorage.setItem("theme", "dark");
     } else {
       root.classList.remove("dark");
+      body.classList.remove("dark");
       localStorage.setItem("theme", "light");
     }
   }, [isDark]);

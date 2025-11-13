@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Moon, Sun, Menu, X, ArrowUp } from 'lucide-react';
-import { Theme, ThemeConfig } from '../theme';
+import { Menu, X, ArrowUp } from 'lucide-react';
+import { ThemeConfig } from '../theme';
 import { Button } from '../ui/Button';
 
-export const Header = ({ theme, toggleTheme, colors }: { theme: Theme; toggleTheme: () => void; colors: ThemeConfig }) => {
+export const Header = ({ colors }: { colors: ThemeConfig }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -84,23 +84,6 @@ export const Header = ({ theme, toggleTheme, colors }: { theme: Theme; toggleThe
           </nav>
 
           <div className="flex items-center space-x-4">
-            <button
-              onClick={toggleTheme}
-              className={`p-2 rounded-full transition-colors duration-300 ${colors.text} hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2`}
-              aria-label="Toggle theme"
-              style={{
-                backgroundColor: colors.isDark
-                  ? "rgba(255, 255, 255, 0.1)"
-                  : "rgba(0, 0, 0, 0.1)"
-              }}
-            >
-              {colors.isDark ? (
-                <Sun className="w-5 h-5 text-yellow-400" />
-              ) : (
-                <Moon className="w-5 h-5 text-gray-800" />
-              )}
-            </button>
-            
             <div className="hidden md:flex items-center space-x-4">
               <Link to="/login">
                 <Button colors={colors}>Sign In</Button>

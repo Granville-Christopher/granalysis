@@ -112,12 +112,13 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
     }
     setSignupError("");
     try {
-      // Backend currently only accepts fullName, email, password
-      // Additional fields (companyName, phone, businessType) can be added to backend later
       await api.post('/auth/register', { 
         fullName, 
         email: signupEmail, 
-        password: signupPassword
+        password: signupPassword,
+        companyName,
+        phone,
+        businessType
       }, { withCredentials: true });
       window.location.reload();
     } catch (err: any) {
@@ -183,6 +184,17 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
         }
         .auth-scrollbar::-webkit-scrollbar-thumb:hover {
           background: ${colors.isDark ? "rgba(79, 163, 255, 0.5)" : "#6b7280"};
+        }
+        /* Select dropdown styling for dark mode */
+        select option {
+          background-color: ${colors.isDark ? '#0B1B3B' : '#ffffff'};
+          color: ${colors.isDark ? '#ffffff' : '#111827'};
+        }
+        select option:hover,
+        select option:focus,
+        select option:checked {
+          background-color: ${colors.isDark ? '#1A345B' : '#f3f4f6'};
+          color: ${colors.isDark ? '#ffffff' : '#111827'};
         }
       `}</style>
 

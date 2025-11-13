@@ -498,7 +498,7 @@ export const CaseStudiesModal = ({ isOpen, onClose, colors }: { isOpen: boolean,
               <button
                 onClick={() => setSelectedCase(null)}
                 className={`mb-6 flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${colors.isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
-                style={{ color: colors.isDark ? '#ffffff' : colors.text }}
+                style={{ color: colors.text }}
               >
                 <X className="w-4 h-4" />
                 Back to All Case Studies
