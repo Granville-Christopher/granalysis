@@ -11,6 +11,7 @@ interface UpgradeModalProps {
   currentTier: string;
   requiredTier?: string;
   exportType?: 'csv' | 'excel' | 'pdf' | 'sql';
+  nonDismissible?: boolean; // For payment failure scenarios - cannot be closed
 }
 
 const UpgradeModal: React.FC<UpgradeModalProps> = ({
@@ -20,6 +21,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
   currentTier,
   requiredTier,
   exportType,
+  nonDismissible = false,
 }) => {
   const { isDark } = useTheme();
   const colors: ThemeConfig = isDark ? THEME_CONFIG.dark : THEME_CONFIG.light;
@@ -55,10 +57,11 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop with blur */}
+      {/* Backdrop with blur - only clickable if dismissible */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-md transition-opacity"
-        onClick={onClose}
+        onClick={nonDismissible ? undefined : onClose}
+        style={{ cursor: nonDismissible ? 'default' : 'pointer' }}
       />
 
       {/* Modal */}
@@ -68,17 +71,19 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
           boxShadow: `0 20px 60px rgba(0, 0, 0, 0.5), ${colors.cardShadow}`,
         }}
       >
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${
-            colors.isDark
-              ? 'hover:bg-white/10 text-gray-300 hover:text-white'
-              : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          <X className="w-5 h-5" />
-        </button>
+        {/* Close button - only show if dismissible */}
+        {!nonDismissible && (
+          <button
+            onClick={onClose}
+            className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${
+              colors.isDark
+                ? 'hover:bg-white/10 text-gray-300 hover:text-white'
+                : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
 
         {/* Icon */}
         <div
@@ -93,7 +98,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
 
         {/* Title */}
         <h2 className={`text-2xl font-bold text-center mb-4 ${colors.text}`}>
-          Plan Limit Reached
+          {nonDismissible ? 'Payment Required' : 'Plan Limit Reached'}
         </h2>
 
         {/* Message */}
@@ -132,17 +137,24 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
           <ArrowRight className="w-5 h-5" />
         </button>
 
-        {/* Cancel button */}
-        <button
-          onClick={onClose}
-          className={`w-full mt-3 py-2 px-6 rounded-xl font-medium transition-colors ${
-            colors.isDark
-              ? 'text-gray-400 hover:text-white'
-              : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          Maybe Later
-        </button>
+        {/* Cancel button - only show if dismissible */}
+        {!nonDismissible && (
+          <button
+            onClick={onClose}
+            className={`w-full mt-3 py-2 px-6 rounded-xl font-medium transition-colors ${
+              colors.isDark
+                ? 'text-gray-400 hover:text-white'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Maybe Later
+          </button>
+        )}
+        {nonDismissible && (
+          <p className={`text-center mt-4 text-sm ${colors.textSecondary}`}>
+            Please upgrade your plan to continue using the platform.
+          </p>
+        )}
       </div>
     </div>
   );

@@ -17,7 +17,7 @@ import { FileInsights } from "../types/file.types";
 import pythonApi from "../utils/pythonApi";
 import InsightsPanel from "../components/dashboard-components/InsightsPanel";
 import { fetchInsights } from "../api/fettchInsights";
-import { canUploadFile, canProcessRows, PricingTier } from "../utils/pricingTiers";
+import { canUploadFile, canProcessRows, PricingTier, PRICING_TIERS } from "../utils/pricingTiers";
 import DataTableModal from "../components/dashboard-components/DataTableModal";
 
 const Dashboard = () => {
@@ -28,6 +28,7 @@ const Dashboard = () => {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeModalType, setUpgradeModalType] = useState<'files' | 'rows' | 'export'>('files');
   const [exportType, setExportType] = useState<'csv' | 'excel' | 'pdf' | 'sql' | undefined>(undefined);
+  const [isPaymentFailureModal, setIsPaymentFailureModal] = useState(false); // Non-dismissible modal for payment failure
   const [user, setUser] = useState<any | null>(null);
   const [filesRefreshKey, setFilesRefreshKey] = useState(0);
   const [insightsLoading, setInsightsLoading] = useState(false);
@@ -136,13 +137,61 @@ const Dashboard = () => {
     upload();
   }, [checkTierLimits]);
 
-  // Fetch current user on mount
+  // Fetch current user on mount and check for payment failure
   useEffect(() => {
     const fetchMe = async () => {
       try {
         const res = await axios.get("/auth/me", { withCredentials: true });
         if (res.data?.status === "success") {
-          setUser(res.data.user);
+          const userData = res.data.user;
+          setUser(userData);
+          
+          // Check if user has files that exceed their current tier limits (payment failure scenario)
+          const checkPaymentFailure = async () => {
+            try {
+              const filesRes = await fetch("/files", { credentials: "include" });
+              if (!filesRes.ok) return;
+              
+              const filesData = await filesRes.json();
+              const files = filesData.files || [];
+              
+              if (files.length === 0) return;
+              
+              const tier = (userData.pricingTier || 'free') as PricingTier;
+              const tierLimits = PRICING_TIERS[tier];
+              const maxRows = tierLimits.maxRowsPerFile;
+              
+              // Check each file's row count
+              let hasExceedingFiles = false;
+              for (const file of files) {
+                try {
+                  const rowCountRes = await fetch(`http://localhost:8000/files/${file.id}/row-count`, {
+                    credentials: 'include',
+                  });
+                  if (rowCountRes.ok) {
+                    const rowData = await rowCountRes.json();
+                    if (maxRows !== Infinity && rowData.row_count > maxRows) {
+                      hasExceedingFiles = true;
+                      break;
+                    }
+                  }
+                } catch (e) {
+                  console.error(`Error checking row count for file ${file.id}:`, e);
+                }
+              }
+              
+              if (hasExceedingFiles) {
+                setIsPaymentFailureModal(true);
+                setUpgradeModalType('rows');
+                setShowUpgradeModal(true);
+              }
+            } catch (err) {
+              console.error("Error checking payment failure:", err);
+            }
+          };
+          
+          // Check for payment failure after a short delay to ensure files are loaded
+          setTimeout(checkPaymentFailure, 1000);
         } else {
           navigate("/login");
         }
@@ -402,12 +451,15 @@ const Dashboard = () => {
       <UpgradeModal
         isOpen={showUpgradeModal}
         onClose={() => {
-          setShowUpgradeModal(false);
-          setExportType(undefined);
+          if (!isPaymentFailureModal) {
+            setShowUpgradeModal(false);
+            setExportType(undefined);
+          }
         }}
         limitType={upgradeModalType}
         currentTier={user?.pricingTier || 'free'}
         exportType={exportType}
+        nonDismissible={isPaymentFailureModal}
       />
     </DashboardLayout>
   );
