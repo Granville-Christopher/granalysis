@@ -42,8 +42,7 @@ const PricingPage: React.FC = () => {
   }, []);
 
   const handleUpgrade = (tierTitle: string) => {
-    // In a real app, this would redirect to payment processing
-    // For now, we'll just show an alert and redirect to dashboard
+    // Navigate to payment page with tier information
     const tierMap: Record<string, string> = {
       'Free Tier': 'free',
       'Startup': 'startup',
@@ -51,9 +50,7 @@ const PricingPage: React.FC = () => {
       'Enterprise': 'enterprise',
     };
     const tierKey = tierMap[tierTitle] || 'startup';
-    alert(`Upgrading to ${tierTitle}... (Payment integration coming soon)`);
-    // TODO: Implement actual payment processing
-    navigate('/dashboard');
+    navigate(`/payment?tier=${tierKey}&annual=${annual}`);
   };
 
   return (
@@ -272,11 +269,33 @@ const PricingPage: React.FC = () => {
                 )}
 
                 <div className="mb-6">
+                  {tier.price > 0 && !annual && (
+                    <div className="mb-2 px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r from-green-500 to-emerald-500 animate-pulse inline-block">
+                      50% OFF First Month
+                    </div>
+                  )}
+                  {tier.price > 0 && annual && (
+                    <div className="mb-2 px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r from-blue-500 to-indigo-500 inline-block">
+                      Save 15% Yearly
+                    </div>
+                  )}
                   <h3 className={`text-2xl font-bold mb-2 ${colors.text}`}>{tier.title}</h3>
                   <p className={`text-sm ${colors.textSecondary} mb-4`}>{tier.description}</p>
+                  {(tier.title === 'Business' || tier.title === 'Enterprise') && (
+                    <div className="mb-3 inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold"
+                      style={{
+                        background: colors.isDark ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.12)',
+                        border: `1px solid ${colors.isDark ? 'rgba(59,130,246,0.35)' : 'rgba(59,130,246,0.25)'}`,
+                        color: colors.isDark ? '#cbd5e1' : '#1f2937'
+                      }}
+                    >
+                      <span className="w-2 h-2 rounded-full" style={{ background: accentColor }}></span>
+                      AI Chat Assistant Included
+                    </div>
+                  )}
                   <div className="flex items-baseline gap-2">
                     <span className={`text-4xl font-bold ${colors.text}`}>
-                      ${annual && tier.price > 0 ? Math.round(tier.price * 12 * 0.85) : tier.price}
+                      ${annual && tier.price > 0 ? Math.round(tier.price * 12 * 0.85) : (tier.price > 0 && !annual ? Math.round(tier.price * 0.5) : tier.price)}
                     </span>
                     {tier.price > 0 && (
                       <span className={`text-lg ${colors.textSecondary}`}>{pricePeriod}</span>
@@ -285,6 +304,11 @@ const PricingPage: React.FC = () => {
                   {annual && tier.price > 0 && (
                     <p className={`text-xs ${colors.textSecondary} mt-1`}>
                       ${tier.price}/month billed annually
+                    </p>
+                  )}
+                  {!annual && tier.price > 0 && (
+                    <p className={`text-xs ${colors.textSecondary} mt-1`}>
+                      <span className="line-through opacity-60">${tier.price}</span> ${Math.round(tier.price * 0.5)} first month only
                     </p>
                   )}
                 </div>
@@ -309,7 +333,13 @@ const PricingPage: React.FC = () => {
                   className="mt-auto border w-full"
                   colors={colors}
                   gradientHover={!colors.isDark}
-                  onClick={() => handleUpgrade(tier.title)}
+                  onClick={(e) => {
+                    if (e) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }
+                    handleUpgrade(tier.title);
+                  }}
                 >
                   {tier.title === 'Free Tier' ? 'Current Plan' : tier.isHighlighted ? 'Start Free Trial' : 'Choose Plan'}
                 </Button>

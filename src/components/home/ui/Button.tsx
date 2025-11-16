@@ -5,7 +5,7 @@ const getButtonGlowClass = (colors: ThemeConfig) => {
   return `group relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium ${colors.text} rounded-lg focus:ring-4 focus:outline-none focus:ring-blue-800 transition-all duration-300`;
 };
 
-export const Button = ({ children, className = '', glow = true, variant = 'primary', onClick = () => {}, colors, gradientHover = false, type, style }: { children: React.ReactNode; className?: string; glow?: boolean; variant?: 'primary' | 'secondary'; onClick?: (e?: React.MouseEvent<HTMLButtonElement>) => void, colors: ThemeConfig, gradientHover?: boolean, type?: 'button' | 'submit' | 'reset', style?: React.CSSProperties }) => {
+export const Button = ({ children, className = '', glow = true, variant = 'primary', onClick = () => {}, colors, gradientHover = false, type, style, 'aria-label': ariaLabel }: { children: React.ReactNode; className?: string; glow?: boolean; variant?: 'primary' | 'secondary'; onClick?: (e?: React.MouseEvent<HTMLButtonElement>) => void, colors: ThemeConfig, gradientHover?: boolean, type?: 'button' | 'submit' | 'reset', style?: React.CSSProperties, 'aria-label'?: string }) => {
   const accentColor = colors.accent;
 
   let primaryBg: string;
@@ -37,8 +37,9 @@ export const Button = ({ children, className = '', glow = true, variant = 'prima
       <button
         type={type || 'button'}
         onClick={onClick}
-        className={`${getButtonGlowClass(colors)} ${className}`}
-        style={style}
+        className={`${getButtonGlowClass(colors)} ${className} focus:outline-none focus:ring-2 focus:ring-offset-2`}
+        style={{ ...style, '--tw-ring-color': accentColor } as React.CSSProperties & { '--tw-ring-color'?: string }}
+        aria-label={ariaLabel}
         onMouseEnter={(e) => {
           if (gradientHover && !colors.isDark) {
             const span = e.currentTarget.querySelector('span:last-child') as HTMLElement;
@@ -70,12 +71,12 @@ export const Button = ({ children, className = '', glow = true, variant = 'prima
     <button
       type={type || 'button'}
       onClick={onClick}
-      className={`px-6 py-3 rounded-lg font-semibold ${variant === 'primary' ? primaryClasses : secondaryClasses} transition-all duration-300 ${className}`}
-      style={style}
+      className={`px-6 py-3 rounded-lg font-semibold ${variant === 'primary' ? primaryClasses : secondaryClasses} transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 ${className}`}
+      style={{ ...style, '--tw-ring-color': accentColor } as React.CSSProperties & { '--tw-ring-color'?: string }}
+      aria-label={ariaLabel}
     >
       {children}
     </button>
   );
 };
-
 

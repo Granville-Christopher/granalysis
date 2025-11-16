@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, ArrowUp } from 'lucide-react';
+import { Menu, X, ArrowUp, Sun, Moon } from 'lucide-react';
 import { ThemeConfig } from '../theme';
 import { Button } from '../ui/Button';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 export const Header = ({ colors }: { colors: ThemeConfig }) => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -11,6 +12,7 @@ export const Header = ({ colors }: { colors: ThemeConfig }) => {
   const [showStickyCTA, setShowStickyCTA] = useState(false);
   const links = ['Features', 'Solutions', 'Impact', 'FAQ', 'Pricing', 'Security'];
   const accentColor = colors.accent;
+  const { isDark, toggleTheme } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -84,6 +86,22 @@ export const Header = ({ colors }: { colors: ThemeConfig }) => {
           </nav>
 
           <div className="flex items-center space-x-4">
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              className={`p-2 rounded-full transition-all duration-200 ${
+                colors.isDark ? "hover:bg-white/10" : "hover:bg-gray-200"
+              }`}
+              title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              aria-label="Toggle theme"
+            >
+              {isDark ? (
+                <Sun className="w-5 h-5 text-yellow-400" />
+              ) : (
+                <Moon className="w-5 h-5" style={{ color: colors.accent }} />
+              )}
+            </button>
+
             <div className="hidden md:flex items-center space-x-4">
               <Link to="/login">
                 <Button colors={colors}>Sign In</Button>
@@ -187,5 +205,4 @@ export const Header = ({ colors }: { colors: ThemeConfig }) => {
     </>
   );
 };
-
 

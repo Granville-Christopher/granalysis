@@ -25,7 +25,7 @@ export const TestimonialsSection = ({ colors }: { colors: ThemeConfig }) => {
   };
 
   return (
-    <div className="py-24 transition-colors duration-500" style={{ backgroundColor: colors.bg }}>
+    <div className="py-24 transition-colors duration-500" style={{ background: colors.isDark ? colors.bg : `linear-gradient(135deg, #F8F9FA 0%, #FFFFFF 50%, #F0F4F8 100%)` }}>
       <div className="container mx-auto px-6">
         <h2 className={`text-3xl md:text-5xl font-bold text-center mb-4 ${colors.text}`}>What Our Leaders Say</h2>
         <p className={`md:text-xl text-base text-center mb-12 ${colors.textSecondary}`}>Real feedback from real customers</p>
@@ -35,26 +35,36 @@ export const TestimonialsSection = ({ colors }: { colors: ThemeConfig }) => {
             {/* Navigation Arrows */}
             <button
               onClick={prevTestimonial}
-              className={`absolute left-4 top-1/2 transform -translate-y-1/2 p-2 rounded-full transition-all duration-300 ${colors.isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-100 hover:bg-gray-200'}`}
+              className={`absolute left-4 top-1/2 transform -translate-y-1/2 p-3 rounded-full transition-all duration-300 z-10 focus:outline-none focus:ring-2 focus:ring-offset-2 ${colors.isDark ? 'bg-white/10 hover:bg-white/20 hover:scale-110' : 'bg-gray-100 hover:bg-gray-200 hover:scale-110'}`}
               aria-label="Previous testimonial"
+              style={{ '--tw-ring-color': accentColor } as React.CSSProperties & { '--tw-ring-color'?: string }}
             >
-              <ChevronLeft className={`w-5 h-5 ${colors.text}`} />
+              <ChevronLeft className={`w-5 h-5 ${colors.text} transition-transform duration-300 group-hover:-translate-x-1`} />
             </button>
             <button
               onClick={nextTestimonial}
-              className={`absolute right-4 top-1/2 transform -translate-y-1/2 p-2 rounded-full transition-all duration-300 ${colors.isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-100 hover:bg-gray-200'}`}
+              className={`absolute right-4 top-1/2 transform -translate-y-1/2 p-3 rounded-full transition-all duration-300 z-10 focus:outline-none focus:ring-2 focus:ring-offset-2 ${colors.isDark ? 'bg-white/10 hover:bg-white/20 hover:scale-110' : 'bg-gray-100 hover:bg-gray-200 hover:scale-110'}`}
               aria-label="Next testimonial"
+              style={{ '--tw-ring-color': accentColor } as React.CSSProperties & { '--tw-ring-color'?: string }}
             >
-              <ChevronRight className={`w-5 h-5 ${colors.text}`} />
+              <ChevronRight className={`w-5 h-5 ${colors.text} transition-transform duration-300 group-hover:translate-x-1`} />
             </button>
 
-            <div className="flex items-center min-h-[300px]">
+            <div className="flex items-center min-h-[300px] overflow-hidden">
               <div
-                className="flex transition-transform duration-700 w-full"
+                className="flex transition-all duration-700 ease-in-out w-full"
                 style={{ transform: `translateX(-${currentTestimonial * 100}%)` }}
+                role="region"
+                aria-live="polite"
+                aria-label={`Testimonial ${currentTestimonial + 1} of ${testimonials.length}`}
               >
                 {testimonials.map((t, index) => (
-                  <div key={index} className="min-w-full flex items-center gap-8 p-4">
+                  <div 
+                    key={index} 
+                    className="min-w-full flex items-center gap-8 p-4 animate-fade-in"
+                    role="article"
+                    aria-label={`Testimonial from ${t.name}`}
+                  >
                     {/* Avatar/Logo Placeholder */}
                     <div className="hidden md:flex flex-col items-center">
                       <div 
@@ -93,14 +103,19 @@ export const TestimonialsSection = ({ colors }: { colors: ThemeConfig }) => {
             </div>
 
             {/* Dots Indicator */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10" role="tablist" aria-label="Testimonial navigation">
               {testimonials.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentTestimonial(index)}
-                  className={`h-2 rounded-full transition-all duration-300 ${index === currentTestimonial ? 'w-8' : 'w-2'} ${colors.isDark ? index === currentTestimonial ? '' : 'bg-gray-600' : index === currentTestimonial ? '' : 'bg-gray-400'}`}
-                  style={{ backgroundColor: index === currentTestimonial ? accentColor : undefined }}
+                  className={`h-2 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 ${index === currentTestimonial ? 'w-8' : 'w-2'} ${colors.isDark ? index === currentTestimonial ? '' : 'bg-gray-600' : index === currentTestimonial ? '' : 'bg-gray-400'}`}
+                  style={{ 
+                    backgroundColor: index === currentTestimonial ? accentColor : undefined,
+                    '--tw-ring-color': accentColor
+                  } as React.CSSProperties & { '--tw-ring-color'?: string }}
                   aria-label={`Go to testimonial ${index + 1}`}
+                  aria-selected={index === currentTestimonial}
+                  role="tab"
                 />
               ))}
             </div>
@@ -128,5 +143,4 @@ export const TestimonialsSection = ({ colors }: { colors: ThemeConfig }) => {
     </div>
   );
 };
-
 

@@ -27,7 +27,7 @@ export const FAQSection = ({ colors }: { colors: ThemeConfig }) => {
   const faqLightGlassClass = 'backdrop-blur-md rounded-xl shadow-lg transition-all duration-300 bg-white/80 border border-gray-200';
 
   return (
-    <div className="py-24 transition-colors duration-500" id="faq" style={{ backgroundColor: colors.secondaryBg }}>
+    <div className="py-24 transition-colors duration-500" id="faq" style={{ background: colors.isDark ? colors.secondaryBg : `linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 100%)` }}>
       <div className="container mx-auto px-6 max-w-4xl">
         <h2 className={`md:text-5xl text-3xl font-bold text-center mb-4 ${colors.text}`}>You Ask. Granalysis Answers.</h2>
         <p className={`md:text-xl text-base text-center mb-8 ${colors.textSecondary}`}>Clear answers that articulate our core value proposition.</p>
@@ -73,29 +73,35 @@ export const FAQSection = ({ colors }: { colors: ThemeConfig }) => {
                       : 'transparent'
                   }}
                 >
-                  <div className={`p-6 ${faqInnerClass} border-none`}>
+                  <div className={`p-6 ${faqInnerClass} border-none card-hover`}>
                     <button
                       onClick={() => toggleQuestion(index)}
-                      className="w-full flex justify-between items-center text-left focus:outline-none"
+                      className="w-full flex justify-between items-center text-left focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg p-2 -m-2"
+                      aria-expanded={isOpen}
+                      aria-controls={`faq-answer-${index}`}
+                      style={{ '--tw-ring-color': accentColor } as React.CSSProperties & { '--tw-ring-color'?: string }}
                     >
-                      <span className={`md:text-xl text-lg font-semibold hover:opacity-80 transition-colors duration-300 ${colors.text}`}>
+                      <span className={`md:text-xl text-lg font-semibold hover:opacity-80 transition-all duration-300 ${colors.text} ${isOpen ? 'text-[var(--tw-ring-color)]' : ''}`} style={{ '--tw-ring-color': accentColor } as React.CSSProperties & { '--tw-ring-color'?: string }}>
                         {item.question}
                       </span>
                       <ChevronDown
-                        className={`w-6 h-6 ml-4 transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
+                        className={`w-6 h-6 ml-4 transition-all duration-300 ${isOpen ? 'rotate-180 scale-110' : 'rotate-0'}`}
                         style={{ color: accentColor }}
                       />
                     </button>
 
                     <div
+                      id={`faq-answer-${index}`}
                       className={`overflow-hidden transition-all duration-500 ease-in-out`}
+                      role="region"
+                      aria-hidden={!isOpen}
                       style={{
-                        maxHeight: isOpen ? '200px' : '0',
+                        maxHeight: isOpen ? '500px' : '0',
                         opacity: isOpen ? 1 : 0,
                         marginTop: isOpen ? '1rem' : '0',
                       }}
                     >
-                      <p className={`pt-4 ${colors.text} border-t ${colors.isDark ? 'border-white/10' : 'border-gray-300'} mt-4 md:text-lg text-base`}>
+                      <p className={`pt-4 ${colors.text} border-t ${colors.isDark ? 'border-white/10' : 'border-gray-300'} mt-4 md:text-lg text-base animate-fade-in`}>
                         <span dangerouslySetInnerHTML={{ __html: item.answer }} />
                       </p>
                     </div>
@@ -125,5 +131,3 @@ export const FAQSection = ({ colors }: { colors: ThemeConfig }) => {
     </div>
   );
 };
-
-

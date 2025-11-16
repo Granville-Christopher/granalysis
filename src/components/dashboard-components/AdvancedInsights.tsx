@@ -505,13 +505,7 @@ const AdvancedInsights: React.FC<AdvancedInsightsProps> = ({ insights, userTier 
         </div>
       )}
 
-      {/* Additional Insights Component */}
-      {insights && (
-        <AdditionalInsights 
-          insights={insights}
-          userTier={userTier}
-        />
-      )}
+      {/* Note: AdditionalInsights is now shown separately in InsightsPanel with category filters */}
     </div>
   );
 };

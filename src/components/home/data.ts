@@ -16,7 +16,7 @@ export const pricingData: PricingTier[] = [
   },
   { 
     title: 'Startup', 
-    price: 19, 
+    price: 24, 
     description: 'Accelerate your initial growth with essential analytics.', 
     features: [
       '5 files/month, 500 rows max',
@@ -28,7 +28,7 @@ export const pricingData: PricingTier[] = [
   },
   { 
     title: 'Business', 
-    price: 60, 
+    price: 69, 
     description: 'Professional analytics for data-driven decisions.', 
     features: [
       '15 files/month, 1,000 rows max',
@@ -40,7 +40,7 @@ export const pricingData: PricingTier[] = [
   },
   { 
     title: 'Enterprise', 
-    price: 149, 
+    price: 179, 
     description: 'Unlimited scale and premium features for large organizations.', 
     features: [
       'Unlimited files & rows',
@@ -270,5 +270,4 @@ export const caseStudies: CaseStudy[] = [
     duration: '6 months'
   }
 ];
-
 

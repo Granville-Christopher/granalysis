@@ -261,4 +261,3 @@ export const Footer = ({ colors }: { colors: ThemeConfig }) => {
   );
 };
 
-

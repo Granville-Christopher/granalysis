@@ -15,9 +15,9 @@ export const TrustAndSecuritySection = ({ colors }: { colors: ThemeConfig }) => 
   const glassmorphismClass = getGlassmorphismClass(colors);
   const accentColor = colors.accent;
 
-  const StatBlock = ({ icon: Icon, value, label }: { icon: any; value: React.ReactNode; label: string }) => (
+  const StatBlock = ({ icon: Icon, value, label, iconColor }: { icon: any; value: React.ReactNode; label: string; iconColor?: string }) => (
     <div className="flex flex-col items-center p-4 transition-transform duration-300 hover:scale-110">
-      <Icon className={`md:w-10 md:h-10 w-6 h-6 mb-2 transition-colors duration-300`} style={{ color: accentColor }} />
+      <Icon className={`md:w-10 md:h-10 w-6 h-6 mb-2 transition-colors duration-300`} style={{ color: iconColor || accentColor, stroke: iconColor || accentColor, '--icon-color': iconColor || accentColor } as React.CSSProperties} />
       <div className={`md:text-4xl text-2xl font-extrabold ${colors.text} text-shadow-glow`} style={{ textShadow: colors.isDark ? `0 0 10px ${accentColor}` : 'none' }}>{value}</div>
       <div className={`md:text-sm text-xs font-light uppercase tracking-wider mt-1 ${colors.textSecondary}`}>{label}</div>
     </div>
@@ -62,7 +62,7 @@ export const TrustAndSecuritySection = ({ colors }: { colors: ThemeConfig }) => 
     <div
       className="py-24 transition-colors duration-500 border-b-2 border-blue-300/10"
       id="security"
-      style={{ backgroundColor: colors.bg }}
+      style={{ background: colors.isDark ? colors.bg : `linear-gradient(180deg, #FFFFFF 0%, #F0F4F8 100%)` }}
     >
       <div className="container mx-auto px-6">
         <h2 className={`md:text-5xl text-3xl font-bold text-center mb-16 ${colors.text}`}>
@@ -73,11 +73,12 @@ export const TrustAndSecuritySection = ({ colors }: { colors: ThemeConfig }) => 
           <div
             className={`md:p-8 p-4 ${glassmorphismClass} mx-auto max-w-4xl grid grid-cols-3`}
           >
-            {stats.map((stat) => (
+            {stats.map((stat, index) => (
               <StatBlock
                 key={stat.label}
                 icon={stat.icon}
                 label={stat.label}
+                iconColor={index === 0 ? '#3b82f6' : index === 1 ? '#fbbf24' : '#10b981'}
                 value={
                   <>
                     <AnimatedNumber endValue={stat.value} />
@@ -107,11 +108,15 @@ export const TrustAndSecuritySection = ({ colors }: { colors: ThemeConfig }) => 
               >
                 <div className="relative">
                   <item.icon
-                    className={`w-8 h-8 mr-4 ${
-                      item.color
-                    } transition-transform duration-300 ${
-                      hoveredBadge === item.title ? "scale-110" : ""
-                    }`}
+                    className="w-8 h-8 mr-4 transition-transform duration-300"
+                    style={{ 
+                      color: index === 0 ? '#22c55e' : index === 1 ? '#06b6d4' : index === 2 ? '#fbbf24' : '#ec4899',
+                      stroke: index === 0 ? '#22c55e' : index === 1 ? '#06b6d4' : index === 2 ? '#fbbf24' : '#ec4899',
+                      fill: index === 0 ? 'rgba(34, 197, 94, 0.3)' : index === 1 ? 'rgba(6, 182, 212, 0.3)' : index === 2 ? 'rgba(251, 191, 36, 0.3)' : 'rgba(236, 72, 153, 0.3)',
+                      '--icon-color': index === 0 ? '#22c55e' : index === 1 ? '#06b6d4' : index === 2 ? '#fbbf24' : '#ec4899',
+                      '--icon-fill': index === 0 ? 'rgba(34, 197, 94, 0.3)' : index === 1 ? 'rgba(6, 182, 212, 0.3)' : index === 2 ? 'rgba(251, 191, 36, 0.3)' : 'rgba(236, 72, 153, 0.3)',
+                      transform: hoveredBadge === item.title ? "scale(1.1)" : "scale(1)"
+                    } as React.CSSProperties}
                   />
                 </div>
                 <div>
@@ -156,7 +161,7 @@ export const TrustAndSecuritySection = ({ colors }: { colors: ThemeConfig }) => 
             className="inline-flex items-center gap-2"
           >
             <p className="flex justify-center gap-2">
-              <FileText className="w-4 h-4" />
+              <FileText className="w-4 h-4" style={{ color: accentColor, stroke: accentColor, '--icon-color': accentColor } as React.CSSProperties} />
               View Compliance Documents
             </p>
           </Button>
@@ -165,5 +170,4 @@ export const TrustAndSecuritySection = ({ colors }: { colors: ThemeConfig }) => 
     </div>
   );
 };
-
 

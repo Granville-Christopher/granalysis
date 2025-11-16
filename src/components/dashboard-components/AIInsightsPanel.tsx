@@ -27,6 +27,21 @@ const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
     return null;
   }
 
+  // Markdown-lite: convert *text* or **text** to <strong>text</strong> and escape others
+  const escapeHtml = (s: string) =>
+    s
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  const toBoldHtml = (s: string) => {
+    let t = escapeHtml(s);
+    t = t.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+    t = t.replace(/\*(.+?)\*/g, "<strong>$1</strong>");
+    return t;
+  };
+
   const tabs = [
     { id: 'recommendations' as const, label: 'Recommendations', icon: Sparkles, data: aiRecommendations, color: 'blue' },
     { id: 'opportunities' as const, label: 'Opportunities', icon: Lightbulb, data: aiOpportunities, color: 'green' },
@@ -104,7 +119,10 @@ const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
                 {activeTabData.color === 'green' && <Lightbulb className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />}
                 {activeTabData.color === 'red' && <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />}
                 {activeTabData.color === 'yellow' && <Zap className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />}
-                <p className={`${colors.text} flex-1`}>{item}</p>
+                <p
+                  className={`${colors.text} flex-1`}
+                  dangerouslySetInnerHTML={{ __html: toBoldHtml(item) }}
+                />
               </div>
             </div>
           ))

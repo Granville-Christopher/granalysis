@@ -19,17 +19,20 @@ export const PartnersSection = ({ colors }: { colors: ThemeConfig }) => {
 
   return (
     
-    <div className="py-24 transition-colors duration-500" style={{ background: colors.isDark ? `linear-gradient(180deg, #1A345B 0%, ${colors.bg} 100%)` : `linear-gradient(180deg, #FFFFFF 0%, ${colors.bg} 100%)` }}>
+    <div className="py-24 transition-colors duration-500" style={{ background: colors.isDark ? `linear-gradient(180deg, #1A345B 0%, ${colors.bg} 100%)` : `linear-gradient(180deg, #F0F4F8 0%, #FFFFFF 100%)` }}>
       <div className="container mx-auto px-6 text-center">
         <h2 className={`md:text-5xl text-3xl font-bold mb-4 ${colors.text}`}>Our Partners & Integrations</h2>
         <p className={`md:text-xl text-base mb-12 ${colors.textSecondary}`}>Seamlessly connect with your existing tools</p>
         
         {/* Category Filter */}
-        <div className="mb-12 flex flex-wrap justify-center gap-3">
+        <div className="mb-12 flex flex-wrap justify-center gap-3" role="tablist" aria-label="Integration categories">
           {categories.map((cat) => (
             <button
               key={cat}
-              className={`px-4 py-2 rounded-full md:text-sm text-xs font-semibold transition-all duration-300 ${colors.isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-100 hover:bg-gray-200'} ${colors.text}`}
+              className={`px-4 py-2 rounded-full md:text-sm text-xs font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 ${colors.isDark ? 'bg-white/10 hover:bg-white/20 hover:scale-110' : 'bg-gray-100 hover:bg-gray-200 hover:scale-110'} ${colors.text}`}
+              role="tab"
+              aria-label={`Filter by ${cat}`}
+              style={{ '--tw-ring-color': colors.accent } as React.CSSProperties & { '--tw-ring-color'?: string }}
             >
               {cat}
             </button>
@@ -43,9 +46,17 @@ export const PartnersSection = ({ colors }: { colors: ThemeConfig }) => {
               {logos.map((logo, index) => (
                 <div 
                   key={index} 
-                  className={`p-4 ${glassmorphismClass} cursor-pointer transition-all duration-300 relative group ${colors.isDark ? 'hover:shadow-[0_0_25px_rgba(79,163,255,0.7)]' : 'hover:shadow-[0_0_15px_rgba(29,78,216,0.3)]'}`}
+                  className={`p-4 ${glassmorphismClass} cursor-pointer transition-all duration-300 relative group card-hover ${colors.isDark ? 'hover:shadow-[0_0_25px_rgba(79,163,255,0.7)]' : 'hover:shadow-[0_0_15px_rgba(29,78,216,0.3)]'}`}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${logo.name} integration`}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                    }
+                  }}
                 >
-                  <span className={`text-lg font-extrabold opacity-70 transition-opacity duration-300 group-hover:opacity-100 ${colors.text}`}>{logo.name}</span>
+                  <span className={`text-lg font-extrabold opacity-70 transition-all duration-300 group-hover:opacity-100 group-hover:scale-110 ${colors.text}`}>{logo.name}</span>
                 </div>
               ))}
             </div>
@@ -57,9 +68,12 @@ export const PartnersSection = ({ colors }: { colors: ThemeConfig }) => {
               {[...logos, ...logos].map((logo, index) => (
                 <div 
                   key={index} 
-                  className={`inline-block mx-8 p-6 ${glassmorphismClass} cursor-pointer transition-all duration-300 relative group ${colors.isDark ? 'hover:shadow-[0_0_25px_rgba(79,163,255,0.7)]' : 'hover:shadow-[0_0_15px_rgba(29,78,216,0.3)]'}`}
+                  className={`inline-block mx-8 p-6 ${glassmorphismClass} cursor-pointer transition-all duration-300 relative group card-hover ${colors.isDark ? 'hover:shadow-[0_0_25px_rgba(79,163,255,0.7)]' : 'hover:shadow-[0_0_15px_rgba(29,78,216,0.3)]'}`}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${logo.name} integration`}
                 >
-                  <span className={`text-3xl font-extrabold opacity-70 transition-opacity duration-300 group-hover:opacity-100 ${colors.text}`}>{logo.name}</span>
+                  <span className={`text-3xl font-extrabold opacity-70 transition-all duration-300 group-hover:opacity-100 group-hover:scale-110 ${colors.text}`}>{logo.name}</span>
                 </div>
               ))}
             </div>
@@ -98,5 +112,4 @@ export const PartnersSection = ({ colors }: { colors: ThemeConfig }) => {
     </div>
   );
 };
-
 

@@ -37,15 +37,16 @@ export const HeroSection = ({ colors }: { colors: ThemeConfig }) => {
 
   const heroBackground = colors.isDark
     ? `radial-gradient(ellipse at center, #1A345B 0%, ${colors.bg} 100%)`
-    : `linear-gradient(180deg, #F9FAFB 0%, ${colors.bg} 100%)`;
+    : `linear-gradient(135deg, #FFFFFF 0%, #F0F4F8 50%, #E8F0F6 100%)`;
 
   const networkGlow = colors.isDark ? '#4FA3FF' : '#1D4ED8';
 
   return (
-    <div
+    <section
       id="home"
       className="relative min-h-screen flex items-center justify-center overflow-hidden pt-40 md:pt-24 lg:pt-32 transition-colors duration-500"
       style={{ background: heroBackground }}
+      aria-label="Hero section"
     >
       {/* Animated Background */}
       <div
@@ -126,7 +127,7 @@ export const HeroSection = ({ colors }: { colors: ThemeConfig }) => {
         <div className="flex flex-wrap justify-center gap-6 mb-10">
           <div className={`px-4 py-2 rounded-lg backdrop-blur-md border ${colors.isDark ? 'bg-white/5 border-white/10' : 'bg-white/80 border-gray-200'}`}>
             <div className="flex items-center gap-2">
-              <Zap className="md:w-4 md:h-4 w-3 h-3" style={{ color: accentColor }} />
+              <Zap className="md:w-4 md:h-4 w-3 h-3" style={{ color: '#fbbf24', stroke: '#fbbf24', '--icon-color': '#fbbf24' } as React.CSSProperties} />
               <span className={`md:text-sm text-xs ${colors.textSecondary}`}>Insights Generated Today:</span>
               <span className={`md:text-sm text-xs font-bold ${colors.text}`} style={{ color: accentColor }}>
                 <AnimatedNumber endValue={liveStats.insights} />
@@ -135,7 +136,7 @@ export const HeroSection = ({ colors }: { colors: ThemeConfig }) => {
           </div>
           <div className={`px-4 py-2 rounded-lg backdrop-blur-md border ${colors.isDark ? 'bg-white/5 border-white/10' : 'bg-white/80 border-gray-200'}`}>
             <div className="flex items-center gap-2">
-              <TrendingUp className="md:w-4 md:h-4 w-3 h-3" style={{ color: accentColor }} />
+              <TrendingUp className="md:w-4 md:h-4 w-3 h-3" style={{ color: '#10b981', stroke: '#10b981', '--icon-color': '#10b981' } as React.CSSProperties} />
               <span className={`md:text-sm text-xs ${colors.textSecondary}`}>Forecast Accuracy:</span>
               <span className={`md:text-sm text-xs font-bold ${colors.text}`} style={{ color: accentColor }}>
                 {liveStats.accuracy}%
@@ -147,15 +148,15 @@ export const HeroSection = ({ colors }: { colors: ThemeConfig }) => {
         {/* Trust Indicators */}
         <div className="flex flex-wrap justify-center items-center gap-4 mb-8">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="md:w-5 md:h-5 w-4 h-4 text-green-500" />
+            <CheckCircle2 className="md:w-5 md:h-5 w-4 h-4" style={{ color: '#22c55e', stroke: '#22c55e', fill: 'rgba(34, 197, 94, 0.3)', '--icon-color': '#22c55e', '--icon-fill': 'rgba(34, 197, 94, 0.3)' } as React.CSSProperties} />
             <span className={`md:text-sm text-xs ${colors.textSecondary}`}>No credit card required</span>
           </div>
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="md:w-5 md:h-5 w-4 h-4 text-green-500" />
+            <CheckCircle2 className="md:w-5 md:h-5 w-4 h-4" style={{ color: '#22c55e', stroke: '#22c55e', fill: 'rgba(34, 197, 94, 0.3)', '--icon-color': '#22c55e', '--icon-fill': 'rgba(34, 197, 94, 0.3)' } as React.CSSProperties} />
             <span className={`md:text-sm text-xs ${colors.textSecondary}`}>Free forever plan</span>
           </div>
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="md:w-5 md:h-5 w-4 h-4 text-green-500" />
+            <CheckCircle2 className="md:w-5 md:h-5 w-4 h-4" style={{ color: '#22c55e', stroke: '#22c55e', fill: 'rgba(34, 197, 94, 0.3)', '--icon-color': '#22c55e', '--icon-fill': 'rgba(34, 197, 94, 0.3)' } as React.CSSProperties} />
             <span className={`md:text-sm text-xs ${colors.textSecondary}`}>Setup in 2 minutes</span>
           </div>
         </div>
@@ -187,26 +188,63 @@ export const HeroSection = ({ colors }: { colors: ThemeConfig }) => {
             <div className="grid grid-cols-1 md:grid-cols-3 md:gap-6">
               <div className="col-span-1 space-y-4  ">
                 <div 
-                  className={`p-4 rounded-xl ${innerCardBg} transition-all duration-300 cursor-pointer ${hoveredCard === 'sales' ? 'scale-105' : ''}`}
+                  className={`p-4 rounded-xl ${innerCardBg} transition-all duration-300 cursor-pointer card-hover ${hoveredCard === 'sales' ? 'scale-105' : ''}`}
                   onMouseEnter={() => setHoveredCard('sales')}
                   onMouseLeave={() => setHoveredCard(null)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Total Sales Year to Date: $245,000"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      setHoveredCard('sales');
+                    }
+                  }}
                   style={hoveredCard === 'sales' ? {
-                    boxShadow: colors.isDark ? `0 0 10px ${accentColor}40` : `0 2px 8px rgba(29, 78, 216, 0.15)`
-                  } : {}}
+                    boxShadow: colors.isDark ? `0 0 20px ${accentColor}60` : `0 4px 12px rgba(29, 78, 216, 0.25)`,
+                    border: `1px solid ${accentColor}40`
+                  } : {
+                    border: `1px solid transparent`
+                  }}
                 >
-                  <p className={`text-sm uppercase ${colors.textSecondary}`}>Total Sales (YTD)</p>
-                  <p className={`md:text-4xl text-3xl font-extrabold transition-colors duration-300`} style={{ color: accentColor }}>$<AnimatedNumber endValue={245000} /></p>
+                  <p className={`text-sm uppercase ${colors.textSecondary} mb-2 transition-colors duration-300`}>Total Sales (YTD)</p>
+                  <p className={`md:text-4xl text-3xl font-extrabold transition-all duration-300 ${hoveredCard === 'sales' ? 'scale-105' : ''}`} style={{ color: accentColor }}>
+                    <span style={{ color: accentColor }}>$</span>
+                    <AnimatedNumber endValue={245000} color={accentColor} />
+                  </p>
+                  {hoveredCard === 'sales' && (
+                    <p className={`text-xs mt-2 ${colors.textSecondary} animate-fade-in`}>
+                      +12.5% vs last year
+                    </p>
+                  )}
                 </div>
                 <div 
-                  className={`p-4 rounded-xl ${innerCardBg} transition-all duration-300 cursor-pointer ${hoveredCard === 'accuracy' ? 'scale-105' : ''}`}
+                  className={`p-4 rounded-xl ${innerCardBg} transition-all duration-300 cursor-pointer card-hover ${hoveredCard === 'accuracy' ? 'scale-105' : ''}`}
                   onMouseEnter={() => setHoveredCard('accuracy')}
                   onMouseLeave={() => setHoveredCard(null)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Forecast Accuracy: 94%"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      setHoveredCard('accuracy');
+                    }
+                  }}
                   style={hoveredCard === 'accuracy' ? {
-                    boxShadow: colors.isDark ? `0 0 10px ${accentColor}40` : `0 2px 8px rgba(29, 78, 216, 0.15)`
-                  } : {}}
+                    boxShadow: colors.isDark ? `0 0 20px rgba(6, 182, 212, 0.6)` : `0 4px 12px rgba(6, 182, 212, 0.25)`,
+                    border: `1px solid rgba(6, 182, 212, 0.4)`
+                  } : {
+                    border: `1px solid transparent`
+                  }}
                 >
-                  <p className={`text-sm uppercase ${colors.textSecondary}`}>Forecast Accuracy</p>
-                  <p className={`md:text-4xl text-3xl font-extrabold text-cyan-500 transition-colors duration-300`}><AnimatedNumber endValue={94} />%</p>
+                  <p className={`text-sm uppercase ${colors.textSecondary} mb-2 transition-colors duration-300`}>Forecast Accuracy</p>
+                  <p className={`md:text-4xl text-3xl font-extrabold transition-all duration-300 ${hoveredCard === 'accuracy' ? 'scale-105' : ''}`} style={{ color: '#06b6d4' }}>
+                    <AnimatedNumber endValue={94} color="#06b6d4" /><span style={{ color: '#06b6d4' }}>%</span>
+                  </p>
+                  {hoveredCard === 'accuracy' && (
+                    <p className={`text-xs mt-2 ${colors.textSecondary} animate-fade-in`}>
+                      Industry-leading precision
+                    </p>
+                  )}
                 </div>
                 <div 
                   className={`p-5 rounded-xl border transition-all duration-300 cursor-pointer ${hoveredCard === 'recommendation' ? 'scale-105' : ''} ${colors.isDark ? 'bg-red-900/20 border-red-500/30' : 'bg-red-50/50 border-red-300'}`}
@@ -217,7 +255,7 @@ export const HeroSection = ({ colors }: { colors: ThemeConfig }) => {
                   } : {}}
                 >
                   <h4 className={`text-base font-semibold flex items-center mb-2 ${colors.isDark ? 'text-red-400' : 'text-red-700'}`}>
-                    <Zap className="w-4 h-4 mr-2" /> AI Recommendation
+                    <Zap className="w-4 h-4 mr-2" style={{ color: '#f59e0b', stroke: '#f59e0b', fill: 'rgba(245, 158, 11, 0.3)', '--icon-color': '#f59e0b', '--icon-fill': 'rgba(245, 158, 11, 0.3)' } as React.CSSProperties} /> AI Recommendation
                   </h4>
                   <p className={`text-xs ${colors.textSecondary}`}>
                     Target <strong>Product B</strong> promotions this week. Insight shows 30% lower conversion due to price sensitivity.
@@ -226,30 +264,58 @@ export const HeroSection = ({ colors }: { colors: ThemeConfig }) => {
               </div>
 
               <div 
-                className={`col-span-2 p-4 mt-2 md:mt-0 rounded-xl h-80 flex flex-col ${innerCardBg} transition-all duration-300 ${hoveredCard === 'chart' ? 'scale-[1.02]' : ''}`}
+                className={`col-span-2 p-4 mt-2 md:mt-0 rounded-xl h-80 flex flex-col ${innerCardBg} transition-all duration-300 card-hover ${hoveredCard === 'chart' ? 'scale-[1.02]' : ''}`}
                 onMouseEnter={() => setHoveredCard('chart')}
                 onMouseLeave={() => setHoveredCard(null)}
+                role="region"
+                aria-label="Monthly Revenue Trend Chart"
                 style={hoveredCard === 'chart' ? {
-                  boxShadow: colors.isDark ? `0 0 15px ${accentColor}40` : `0 4px 12px rgba(29, 78, 216, 0.15)`
-                } : {}}
+                  boxShadow: colors.isDark ? `0 0 25px ${accentColor}60` : `0 6px 16px rgba(29, 78, 216, 0.25)`,
+                  border: `1px solid ${accentColor}40`
+                } : {
+                  border: `1px solid transparent`
+                }}
               >
                 <div className="flex justify-between items-center mb-2">
                   <h4 className={`text-sm md:text-base font-semibold ${colors.text}`}>Monthly Revenue Trend</h4>
-                  <button className="text-xs flex items-center gap-1 px-2 py-1 rounded transition-colors"
+                  <button 
+                    className="text-xs flex items-center gap-1 px-2 py-1 rounded transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2"
                     style={{ 
                       color: accentColor,
-                      backgroundColor: colors.isDark ? 'rgba(79, 163, 255, 0.1)' : 'rgba(29, 78, 216, 0.1)'
-                    }}
+                      backgroundColor: colors.isDark ? 'rgba(79, 163, 255, 0.1)' : 'rgba(29, 78, 216, 0.1)',
+                      '--tw-ring-color': accentColor
+                    } as React.CSSProperties & { '--tw-ring-color'?: string }}
+                    aria-label="Explore chart details"
                   >
-                    <ExternalLink className="w-3 h-3" />
+                    <ExternalLink className="w-3 h-3 transition-transform duration-300 group-hover:rotate-45" style={{ color: accentColor, stroke: accentColor, '--icon-color': accentColor } as React.CSSProperties} />
                     Explore
                   </button>
                 </div>
-                <div className={`flex justify-center space-x-6 mb-3 text-xs ${colors.textSecondary}`}>
-                  {['Product A', 'Product B', 'Product C'].map((product) => (
-                    <div key={product} className="flex items-center transition-transform duration-300 hover:scale-110 cursor-pointer">
-                      <div className="w-3 h-3 rounded-full mr-2 transition-all duration-300" style={{ backgroundColor: colors.accent }}></div>
-                      {product}
+                <div className={`flex justify-center space-x-6 mb-3 text-xs ${colors.textSecondary}`} role="list" aria-label="Product categories">
+                  {[
+                    { name: 'Product A', color: colors.accent },
+                    { name: 'Product B', color: '#F97316' },
+                    { name: 'Product C', color: '#10B981' }
+                  ].map((product, idx) => (
+                    <div 
+                      key={product.name} 
+                      className="flex items-center transition-all duration-300 hover:scale-110 cursor-pointer group"
+                      role="listitem"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                        }
+                      }}
+                    >
+                      <div 
+                        className="w-3 h-3 rounded-full mr-2 transition-all duration-300 group-hover:scale-125 group-hover:shadow-lg" 
+                        style={{ 
+                          backgroundColor: product.color,
+                          boxShadow: hoveredCard === 'chart' ? `0 0 8px ${product.color}80` : 'none'
+                        }}
+                      ></div>
+                      <span className="group-hover:font-semibold transition-all duration-300">{product.name}</span>
                     </div>
                   ))}
                 </div>
@@ -275,8 +341,7 @@ export const HeroSection = ({ colors }: { colors: ThemeConfig }) => {
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
-
 

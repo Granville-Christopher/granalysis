@@ -80,7 +80,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       } md:translate-x-0 ${isCollapsed ? "w-20" : "w-64"}`}
     >
       <div
-        className={`${glassmorphismClass} h-full flex flex-col transition-all duration-300`}
+        className={`${glassmorphismClass} rounded-none h-full flex flex-col transition-all duration-300`}
         style={{
           backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.8)' : 'rgba(255, 255, 255, 0.8)',
           boxShadow: colors.cardShadow,
@@ -93,7 +93,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           )}
           <div className="flex items-center gap-2 ml-auto">
             <button
-              className={`p-2 rounded-full transition-colors ${
+              className={`p-2 rounded-full transition-all duration-200 ${
                 colors.isDark ? "hover:bg-white/10" : "hover:bg-gray-200"
               }`}
               title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
@@ -103,16 +103,21 @@ const Sidebar: React.FC<SidebarProps> = ({
             </button>
             {onToggleCollapse && (
               <button
-                className={`p-2 rounded-full transition-colors ${
-                  colors.isDark ? "hover:bg-white/10" : "hover:bg-gray-200"
+                className={`p-2.5 rounded-lg transition-all duration-200 ${
+                  colors.isDark ? "hover:bg-white/15 bg-white/5" : "hover:bg-gray-200 bg-gray-100"
                 }`}
                 onClick={onToggleCollapse}
                 title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                style={{
+                  boxShadow: isCollapsed 
+                    ? `0 2px 4px ${colors.accent}30`
+                    : `0 2px 4px ${colors.accent}20`
+                }}
               >
                 {isCollapsed ? (
-                  <ChevronRight className="w-5 h-5" style={{ color: colors.accent }} />
+                  <ChevronRight className="w-5 h-5" style={{ color: colors.accent, fontWeight: 'bold' }} />
                 ) : (
-                  <ChevronLeft className="w-5 h-5" style={{ color: colors.accent }} />
+                  <ChevronLeft className="w-5 h-5" style={{ color: colors.accent, fontWeight: 'bold' }} />
                 )}
               </button>
             )}

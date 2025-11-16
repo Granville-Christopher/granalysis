@@ -618,5 +618,3 @@ export const CaseStudiesModal = ({ isOpen, onClose, colors }: { isOpen: boolean,
     </div>
   );
 };
-
-

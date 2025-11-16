@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Zap, Check, X, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
 import { ThemeConfig, getGlassmorphismClass } from '../theme';
 import { pricingData } from '../data';
@@ -8,6 +9,7 @@ import { Button } from '../ui/Button';
 import { AnimatedNumber } from '../ui/AnimatedNumber';
 
 export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
+  const navigate = useNavigate();
   const accentColor = colors.accent;
   const glassmorphismClass = getGlassmorphismClass(colors);
   const [annual, setAnnual] = useState(true);
@@ -74,7 +76,7 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
       style={{
         background: colors.isDark
           ? `linear-gradient(0deg, ${colors.bg} 0%, #1A345B 100%)`
-          : `linear-gradient(270deg, ${colors.bg} 0%, #E5E7EB 100%)`,
+          : `linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 50%, #F0F4F8 100%)`,
       }}
     >
       <div className="container mx-auto px-6 text-center">
@@ -87,7 +89,7 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
 
         {/* ROI Calculator */}
         <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 ${colors.isDark ? 'bg-green-900/30 border border-green-500/40' : 'bg-green-100 border border-green-300'}`}>
-          <TrendingUp className="w-4 h-4 text-green-500" />
+          <TrendingUp className="w-4 h-4" style={{ color: '#22c55e', stroke: '#22c55e', '--icon-color': '#22c55e' } as React.CSSProperties} />
           <span className={`text-sm font-semibold ${colors.isDark ? 'text-green-400' : 'text-green-700'}`}>
             Average ROI: 340% in first year
           </span>
@@ -105,12 +107,12 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
             >
               {showComparison ? (
                 <>
-                  <ChevronUp className="w-4 h-4" />
+                  <ChevronUp className="w-4 h-4" style={{ color: colors.isDark ? '#ffffff' : '#111827' }} />
                   Hide Details
                 </>
               ) : (
                 <>
-                  <ChevronDown className="w-4 h-4" />
+                  <ChevronDown className="w-4 h-4" style={{ color: colors.isDark ? '#ffffff' : '#111827' }} />
                   Show Details
                 </>
               )}
@@ -187,7 +189,7 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
                                     typeof value === 'string' ? (
                                       <span className={`text-xs font-medium ${colors.text}`}>{value}</span>
                                     ) : (
-                                      <Check className="w-4 h-4 mx-auto text-green-500" />
+                                      <Check className="w-4 h-4 mx-auto" style={{ color: '#22c55e', stroke: '#22c55e', fill: 'rgba(34, 197, 94, 0.3)', '--icon-color': '#22c55e', '--icon-fill': 'rgba(34, 197, 94, 0.3)' } as React.CSSProperties} />
                                     )
                                   ) : (
                                     <X className={`w-4 h-4 mx-auto ${colors.isDark ? 'text-gray-600' : 'text-gray-300'}`} />
@@ -234,7 +236,7 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
             }`}
             onClick={() => setAnnual(true)}
           >
-            Annual <span className="ml-1 text-green-500">(Save 15%)</span>
+            Annual <span className="ml-1 save-text-green" style={{ color: '#22c55e' }}>(Save 15%)</span>
           </button>
         </div>
 
@@ -350,8 +352,32 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
                       {tier.description}
                     </p>
 
+                    {(tier.title === 'Business' || tier.title === 'Enterprise') && (
+                      <div
+                        className="mb-3 inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold"
+                        style={{
+                          background: colors.isDark ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.12)',
+                          border: `1px solid ${colors.isDark ? 'rgba(59,130,246,0.35)' : 'rgba(59,130,246,0.25)'}`,
+                          color: colors.isDark ? '#cbd5e1' : '#1f2937'
+                        }}
+                      >
+                        <span className="w-2 h-2 rounded-full" style={{ background: colors.accent }}></span>
+                        AI Chat Assistant Included
+                      </div>
+                    )}
+
                     <div className="my-6">
                       <div className="flex flex-col items-center">
+                        {tier.price > 0 && !annual && (
+                          <div className="mb-2 px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r from-green-500 to-emerald-500 animate-pulse">
+                            50% OFF First Month
+                          </div>
+                        )}
+                        {tier.price > 0 && annual && (
+                          <div className="mb-2 px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r from-blue-500 to-indigo-500">
+                            Save 15% Yearly
+                          </div>
+                        )}
                         <div className="flex items-baseline font-semibold">
                           <span
                             className={`md:text-5xl text-2xl font-semibold ${colors.text}`}
@@ -363,7 +389,7 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
                           >
                             <AnimatedNumber
                               key={annual ? "annual" : "monthly"}
-                              endValue={annual ? annualPrice : monthlyPrice}
+                              endValue={annual ? annualPrice : (tier.price > 0 && !annual ? Math.round(monthlyPrice * 0.5) : monthlyPrice)}
                             />
                           </span>
                           <span
@@ -385,12 +411,26 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
                             </>
                           ) : (
                             <>
-                              <span className="md:text-sm text-xs opacity-70">
-                                ${(annualPrice / 12).toLocaleString()}
-                              </span>
-                              <span className="md:text-xs text-xs ml-1">
-                                /mo (annual equivalent)
-                              </span>
+                              {tier.price > 0 && (
+                                <>
+                                  <span className="md:text-sm text-xs line-through opacity-60">
+                                    ${monthlyPrice.toLocaleString()}
+                                  </span>
+                                  <span className="md:text-xs text-xs ml-1 opacity-70">
+                                    /mo (first month only)
+                                  </span>
+                                </>
+                              )}
+                              {tier.price === 0 && (
+                                <>
+                                  <span className="md:text-sm text-xs opacity-70">
+                                    ${(annualPrice / 12).toLocaleString()}
+                                  </span>
+                                  <span className="md:text-xs text-xs ml-1">
+                                    /mo (annual equivalent)
+                                  </span>
+                                </>
+                              )}
                             </>
                           )}
                         </div>
@@ -404,14 +444,22 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
                           className={`flex items-center ${colors.textSecondary}`}
                         >
                           <Zap
-                            className={`md:w-4 w-3 md:h-4 h-3 md:mr-3 mr-2 text-xs md:text-base ${
-                              tier.isHighlighted ? "" : "text-green-500"
-                            }`}
+                            className={`md:w-4 w-3 md:h-4 h-3 md:mr-3 mr-2 text-xs md:text-base`}
                             style={{
                               color: tier.isHighlighted
                                 ? accentColor
-                                : undefined,
-                            }}
+                                : '#22c55e',
+                              stroke: tier.isHighlighted
+                                ? accentColor
+                                : '#22c55e',
+                              fill: tier.isHighlighted
+                                ? `rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, 0.3)`
+                                : 'rgba(34, 197, 94, 0.3)',
+                              '--icon-color': tier.isHighlighted ? accentColor : '#22c55e',
+                              '--icon-fill': tier.isHighlighted
+                                ? `rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, 0.3)`
+                                : 'rgba(34, 197, 94, 0.3)',
+                            } as React.CSSProperties}
                           />
                           <span className="md:text-sm text-xs">{feature}</span>
                         </div>
@@ -422,6 +470,20 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
                       className={`mt-auto border`}
                       colors={colors}
                       gradientHover={!colors.isDark}
+                      onClick={(e) => {
+                        if (e) {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }
+                        if (tier.title === 'Free Tier') return;
+                        const tierMap: Record<string, string> = {
+                          'Startup': 'startup',
+                          'Business': 'business',
+                          'Enterprise': 'enterprise',
+                        };
+                        const tierKey = tierMap[tier.title] || 'startup';
+                        navigate(`/payment?tier=${tierKey}&annual=${annual}`);
+                      }}
                     >
                       {tier.isHighlighted ? "Start Free Trial" : "Choose Plan"}
                     </Button>
@@ -442,5 +504,4 @@ export const PricingSection = ({ colors }: { colors: ThemeConfig }) => {
     </div>
   );
 };
-
 

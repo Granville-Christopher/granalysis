@@ -8,6 +8,7 @@ import ToggleSidebarButton from "../components/dashboard-components/ToggleSideba
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import axios from "axios";
+import api from "../utils/axios";
 import FileUploadOverlay from "../components/dashboard-components/FileUploadOverlay";
 import ProcessingModal from "../components/dashboard-components/ProcessingModal";
 import UpgradeModal from "../components/dashboard-components/UpgradeModal";
@@ -16,9 +17,11 @@ import { useNavigate } from "react-router-dom";
 import { FileInsights } from "../types/file.types";
 import pythonApi from "../utils/pythonApi";
 import InsightsPanel from "../components/dashboard-components/InsightsPanel";
+import InsightsMarquee from "../components/dashboard-components/InsightsMarquee";
 import { fetchInsights } from "../api/fettchInsights";
 import { canUploadFile, canProcessRows, PricingTier, PRICING_TIERS } from "../utils/pricingTiers";
 import DataTableModal from "../components/dashboard-components/DataTableModal";
+import ChatAssistant from "../components/dashboard-components/ChatAssistant";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -34,6 +37,24 @@ const Dashboard = () => {
   const [insightsLoading, setInsightsLoading] = useState(false);
   const [selectedFileId, setSelectedFileId] = useState<number | null>(null);
   const [fileData, setFileData] = useState<FileInsights | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
+  // Check if screen is mobile (less than 768px - tablet breakpoint)
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    // Check on mount
+    checkScreenSize();
+
+    // Add resize listener
+    window.addEventListener('resize', checkScreenSize);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
   // Check tier limits before upload
   const checkTierLimits = useCallback(async (file: File): Promise<{ canUpload: boolean; limitType?: 'files' | 'rows' }> => {
     if (!user?.pricingTier) return { canUpload: false, limitType: 'files' };
@@ -140,11 +161,23 @@ const Dashboard = () => {
   // Fetch current user on mount and check for payment failure
   useEffect(() => {
     const fetchMe = async () => {
+      // Always fetch fresh data directly from database
       try {
         const res = await axios.get("/auth/me", { withCredentials: true });
         if (res.data?.status === "success") {
           const userData = res.data.user;
+          console.log('[Dashboard] Fresh user data fetched from DB:', { 
+            id: userData.id, 
+            email: userData.email, 
+            pricingTier: userData.pricingTier, 
+            subscriptionStatus: userData.subscriptionStatus,
+            accountBalance: userData.accountBalance,
+            subscriptionExpiresAt: userData.subscriptionExpiresAt
+          });
           setUser(userData);
+          
+          // Update sessionStorage with fresh data
+          sessionStorage.setItem('userData', JSON.stringify(userData));
           
           // Check if user has files that exceed their current tier limits (payment failure scenario)
           const checkPaymentFailure = async () => {
@@ -192,11 +225,54 @@ const Dashboard = () => {
           
           // Check for payment failure after a short delay to ensure files are loaded
           setTimeout(checkPaymentFailure, 1000);
+          return;
         } else {
+          // API call succeeded but no user data - check stored data as fallback
+          const storedUserData = sessionStorage.getItem('userData');
+          if (storedUserData) {
+            try {
+              const userData = JSON.parse(storedUserData);
+              console.log('[Dashboard] Using stored user data as fallback:', { id: userData.id, email: userData.email, pricingTier: userData.pricingTier });
+              setUser(userData);
+              return;
+            } catch (err) {
+              console.error('[Dashboard] Failed to parse stored user data:', err);
+              sessionStorage.removeItem('userData');
+            }
+          }
           navigate("/login");
         }
       } catch (err) {
-        console.error("Auth check failed:", err);
+        console.warn("Auth check failed, trying stored data:", err);
+        // API call failed - use stored data as fallback
+        const storedUserData = sessionStorage.getItem('userData');
+        if (storedUserData) {
+          try {
+            const userData = JSON.parse(storedUserData);
+            console.log('[Dashboard] Using stored user data (API failed):', { id: userData.id, email: userData.email, pricingTier: userData.pricingTier });
+            setUser(userData);
+            
+            // Try to verify in background
+            setTimeout(async () => {
+              try {
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                const res = await axios.get("/auth/me", { withCredentials: true });
+                if (res.data?.status === "success" && res.data?.user) {
+                  console.log('[Dashboard] Background verification succeeded, updating user data');
+                  setUser(res.data.user);
+                  sessionStorage.setItem('userData', JSON.stringify(res.data.user));
+                  sessionStorage.setItem('justLoggedIn', 'true');
+                }
+              } catch (err) {
+                console.warn('[Dashboard] Background verification failed, but using stored data');
+              }
+            }, 2000);
+            return;
+          } catch (parseErr) {
+            console.error('[Dashboard] Failed to parse stored user data:', parseErr);
+            sessionStorage.removeItem('userData');
+          }
+        }
         navigate("/login");
       }
     };
@@ -275,11 +351,16 @@ const Dashboard = () => {
 
   const handleLogout = useCallback(async () => {
     try {
-      await axios.post("/auth/logout", {}, { withCredentials: true });
-      setUser(null);
-      window.location.reload();
+      await api.post("/auth/logout", {});
     } catch (err) {
       console.error("Logout failed:", err);
+    } finally {
+      setUser(null);
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+      } catch {}
+      window.location.replace('/login');
     }
   }, []);
 
@@ -378,11 +459,64 @@ const Dashboard = () => {
       seasonal_patterns: fileData.insights.seasonal_patterns,
       clv_by_cohort: fileData.insights.clv_by_cohort ?? [],
       payment_impact_analysis: fileData.insights.payment_impact_analysis,
+      // Enterprise-Level Insights
+      executive_summary: fileData.insights.executive_summary,
+      predictive_forecast_with_ci: fileData.insights.predictive_forecast_with_ci,
+      scenario_planning: fileData.insights.scenario_planning,
+      price_elasticity_analysis: fileData.insights.price_elasticity_analysis,
+      cash_flow_forecast: fileData.insights.cash_flow_forecast,
+      revenue_attribution: fileData.insights.revenue_attribution,
+      market_opportunity_scoring: fileData.insights.market_opportunity_scoring,
+      predictive_churn_analysis: fileData.insights.predictive_churn_analysis,
+      inventory_optimization: fileData.insights.inventory_optimization,
+      break_even_analysis: fileData.insights.break_even_analysis,
+      customer_journey_mapping: fileData.insights.customer_journey_mapping,
+      next_best_actions: fileData.insights.next_best_actions,
+      advanced_anomaly_detection: fileData.insights.advanced_anomaly_detection,
+      competitive_positioning: fileData.insights.competitive_positioning,
+      profit_margin_optimization: fileData.insights.profit_margin_optimization,
     };
   }, [fileData?.insights]);
 
   // Memoize charts data
   const memoizedCharts = useMemo(() => fileData?.charts, [fileData?.charts]);
+
+  // Show mobile message if on mobile device
+  if (isMobile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ 
+        backgroundColor: '#0b1b3b',
+        color: '#ffffff'
+      }}>
+        <div className="text-center max-w-md">
+          <div className="mb-6">
+            <svg className="w-24 h-24 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h1 className="text-3xl font-bold mb-4">Dashboard Unavailable on Mobile</h1>
+          <p className="text-lg mb-6 opacity-90">
+            The dashboard is optimized for tablet and desktop screens. Please access it from a device with a screen width of 768px or larger.
+          </p>
+          <div className="space-y-2 text-sm opacity-75">
+            <p>📱 Mobile: Not supported</p>
+            <p>📱 Tablet (768px+): Supported</p>
+            <p>💻 Desktop: Supported</p>
+          </div>
+          <button
+            onClick={() => navigate('/')}
+            className="mt-8 px-6 py-3 rounded-lg font-semibold transition-all duration-200"
+            style={{
+              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+              boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)',
+            }}
+          >
+            Return to Homepage
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -414,7 +548,7 @@ const Dashboard = () => {
             setShowUpgradeModal(true);
           }}
         />
-        <div className="mt-20 md:mt-16 space-y-6 p-4 md:p-6" style={{ backgroundColor: 'transparent' }}>
+        <div className="mt-20 md:mt-16 space-y-6 px-2 md:px-3 py-4" style={{ backgroundColor: 'transparent' }}>
           <div className="w-full">
             {hasFiles ? (
               <InsightsPanel
@@ -429,6 +563,33 @@ const Dashboard = () => {
               )}
           </div>
         </div>
+        {/* Fixed Marquee at Bottom of Viewport - outside insights panel */}
+        {hasFiles && (
+          <div className="fixed bottom-0 z-50 px-2 md:px-3" style={{ 
+            left: isSidebarCollapsed ? '80px' : '256px',
+            right: '0',
+            transition: 'left 0.3s ease'
+          }}>
+            <InsightsMarquee
+              alerts={memoizedInsights?.alerts}
+              aiRecommendations={memoizedInsights?.ai_recommendations}
+              text={memoizedInsights?.text}
+            />
+          </div>
+        )}
+
+        {/* Chat Assistant Floating + Overlay */}
+        <ChatAssistant
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+          onOpen={() => setIsChatOpen(true)}
+          userId={user?.id}
+          userTier={(user?.pricingTier as PricingTier) || 'free'}
+        fileId={selectedFileId ?? undefined}
+          fileName={(selectedFileId && fileData?.caption) ? fileData.caption : undefined}
+          fileInsights={memoizedInsights as any}
+          hasOpenFile={!!selectedFileId && !!memoizedInsights}
+        />
       </div>
 
       {/* Data Table Modal */}

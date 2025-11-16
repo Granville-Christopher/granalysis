@@ -34,6 +34,9 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
     if (limitType === 'files') {
       return 'You have reached your monthly file upload limit.';
     } else if (limitType === 'rows') {
+      if (nonDismissible) {
+        return 'You have files that exceed your current plan limits. Please upgrade to continue analyzing your data.';
+      }
       return 'This file exceeds the maximum rows allowed for your plan.';
     } else if (limitType === 'export') {
       const exportNames: Record<string, string> = {
@@ -50,7 +53,20 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
 
   const limitMessage = getLimitMessage();
 
-  const handleUpgrade = () => {
+  const handleUpgrade = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    // For non-dismissible modals (payment expired), force immediate navigation to pricing page
+    if (nonDismissible) {
+      // Use window.location for immediate navigation without waiting for React Router
+      window.location.href = '/pricing';
+      return;
+    }
+    
+    // For dismissible modals, use normal navigation
     onClose();
     navigate('/pricing');
   };
@@ -124,6 +140,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
         {/* Upgrade button */}
         <button
           onClick={handleUpgrade}
+          type="button"
           className={`w-full py-4 px-6 rounded-xl font-semibold text-white transition-all duration-300 flex items-center justify-center gap-2 ${
             colors.isDark
               ? 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400'

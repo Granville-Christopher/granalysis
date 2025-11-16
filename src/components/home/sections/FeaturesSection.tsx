@@ -17,7 +17,7 @@ export const FeaturesSection = ({ colors }: { colors: ThemeConfig }) => {
   };
 
   return (
-    <div className="py-24 transition-colors duration-500" id="features" style={{ backgroundColor: colors.bg }}>
+    <div className="py-24 transition-colors duration-500" id="features" style={{ background: colors.isDark ? colors.bg : `linear-gradient(180deg, #FFFFFF 0%, #F8F9FA 100%)` }}>
       <div className="container mx-auto px-6 text-center">
         <h2 className={`md:text-5xl text-3xl font-bold mb-4 ${colors.text}`}>Core Platform Features</h2>
         <p className={`md:text-xl text-base mb-16 ${colors.textSecondary}`}>Everything you need to transform data into actionable insights</p>
@@ -31,14 +31,24 @@ export const FeaturesSection = ({ colors }: { colors: ThemeConfig }) => {
             return (
               <ScrollReveal key={index} className="h-full">
                 <div 
-                  className={`p-6 ${glassmorphismClass} group flex flex-col items-start text-left cursor-pointer transition-all duration-300 h-full relative ${colors.isDark ? 'hover:shadow-[0_0_30px_rgba(79,163,255,0.5)]' : 'hover:shadow-xl hover:border-blue-400'} ${isExpanded ? 'scale-105 z-10' : ''}`}
+                  className={`p-6 ${glassmorphismClass} group flex flex-col items-start text-left cursor-pointer transition-all duration-300 h-full relative card-hover ${colors.isDark ? 'hover:shadow-[0_0_30px_rgba(79,163,255,0.5)]' : 'hover:shadow-xl hover:border-blue-400'} ${isExpanded ? 'scale-105 z-10' : ''}`}
                   onClick={() => setExpandedCard(isExpanded ? null : index)}
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={isExpanded}
+                  aria-label={`${card.title} - ${isExpanded ? 'Collapse' : 'Expand'} details`}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setExpandedCard(isExpanded ? null : index);
+                    }
+                  }}
                 >
                   {/* Badges */}
                   <div className="absolute top-4 right-4 flex gap-2">
                     {isNew && (
                       <span className={`px-2 py-1 text-xs font-bold rounded-full ${colors.isDark ? 'bg-green-900/40 text-green-400 border border-green-500/40' : 'bg-green-100 text-green-700 border border-green-300'}`}>
-                        <Sparkles className="w-3 h-3 inline mr-1" />
+                        <Sparkles className="w-3 h-3 inline mr-1" style={{ color: '#22c55e', stroke: '#22c55e', fill: 'rgba(34, 197, 94, 0.3)', '--icon-color': '#22c55e', '--icon-fill': 'rgba(34, 197, 94, 0.3)' } as React.CSSProperties} />
                         New
                       </span>
                     )}
@@ -60,13 +70,17 @@ export const FeaturesSection = ({ colors }: { colors: ThemeConfig }) => {
                   <p className={`${colors.textSecondary} flex-grow transition-colors`}>{card.description}</p>
                   
                   {/* Expandable Content */}
-                  <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-96 mt-4' : 'max-h-0'}`}>
-                    <p className={`text-sm ${colors.textSecondary} mb-4`}>{featureDetails[index]}</p>
+                  <div 
+                    className={`overflow-hidden transition-all duration-500 ease-in-out ${isExpanded ? 'max-h-96 mt-4 opacity-100' : 'max-h-0 opacity-0'}`}
+                    role="region"
+                    aria-hidden={!isExpanded}
+                  >
+                    <p className={`text-sm ${colors.textSecondary} mb-4 animate-fade-in`}>{featureDetails[index]}</p>
                     <div className="flex flex-wrap gap-2">
                       {['Advanced', 'Secure', 'Fast'].map((tag, i) => (
                         <span 
                           key={i}
-                          className={`px-2 py-1 text-xs rounded-full ${colors.isDark ? 'bg-white/10' : 'bg-gray-100'}`}
+                          className={`px-2 py-1 text-xs rounded-full transition-all duration-300 hover:scale-110 ${colors.isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-100 hover:bg-gray-200'}`}
                           style={{ color: accentColor }}
                         >
                           {tag}
@@ -77,7 +91,7 @@ export const FeaturesSection = ({ colors }: { colors: ThemeConfig }) => {
 
                   <div className="mt-4 flex items-center justify-between w-full">
                     <span className={`text-sm font-semibold transition-opacity duration-300 ${isExpanded ? 'opacity-100' : 'opacity-50 group-hover:opacity-100'}`} style={{ color: accentColor }}>
-                      {isExpanded ? 'Show Less' : 'Learn More'} <ChevronDown className={`w-4 h-4 inline transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+                      {isExpanded ? 'Show Less' : 'Learn More'} <ChevronDown className={`w-4 h-4 inline transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} style={{ color: accentColor }} />
                     </span>
                   </div>
                 </div>
@@ -89,5 +103,4 @@ export const FeaturesSection = ({ colors }: { colors: ThemeConfig }) => {
     </div>
   );
 };
-
 

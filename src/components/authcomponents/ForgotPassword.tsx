@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 import { Moon, Sun, Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
 import { Theme, ThemeConfig, THEME_CONFIG } from "../home/theme";
 
@@ -7,6 +8,8 @@ const ForgotPassword: React.FC = () => {
   const [theme, setTheme] = useState<Theme>('dark');
   const colors: ThemeConfig = theme === 'dark' ? THEME_CONFIG.dark : THEME_CONFIG.light;
   const accentColor = colors.accent;
+  const isLight = !colors.isDark;
+  const navigate = useNavigate();
 
   // State for email-only form
   const [email, setEmail] = useState("");
@@ -20,24 +23,39 @@ const ForgotPassword: React.FC = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
-  const handleSendOtp = (e: React.FormEvent) => {
+  const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
       setError("Please enter your email address.");
       return;
     }
+
     setError("");
-    setOtpSent(true);
-    setSuccess("OTP sent to " + email);
-    // TODO: Implement actual OTP sending logic
+    setSuccess("");
+    setLoading(true);
+
+    try {
+      const res = await axios.post('/auth/forgot-password', { email }, { withCredentials: true });
+      if (res.data?.status === 'success') {
+        setOtpSent(true);
+        setSuccess("If the email exists, a reset code has been sent to " + email);
+      } else {
+        setError(res.data?.message || "Failed to send reset code. Please try again.");
+      }
+    } catch (error: any) {
+      setError(error.response?.data?.message || "Failed to send reset code. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleResetPassword = (e: React.FormEvent) => {
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!resetEmail || !otp || !newPassword || !confirmNewPassword) {
       setError("Please fill in all fields.");
@@ -51,9 +69,34 @@ const ForgotPassword: React.FC = () => {
       setError("Passwords do not match.");
       return;
     }
+
     setError("");
-    setSuccess("Password reset successful!");
-    // TODO: Implement actual password reset logic
+    setSuccess("");
+    setLoading(true);
+
+    try {
+      const res = await axios.post(
+        '/auth/reset-password',
+        {
+          email: resetEmail,
+          code: otp,
+          password: newPassword,
+        },
+        { withCredentials: true }
+      );
+      if (res.data?.status === 'success') {
+        setSuccess("Password reset successful! Redirecting to login...");
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      } else {
+        setError(res.data?.message || "Failed to reset password. Please try again.");
+      }
+    } catch (error: any) {
+      setError(error.response?.data?.message || "Failed to reset password. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const backgroundStyle = colors.isDark
@@ -78,7 +121,7 @@ const ForgotPassword: React.FC = () => {
 
   return (
     <div 
-      className="min-h-screen transition-colors duration-500 relative overflow-hidden"
+      className={`min-h-screen transition-colors duration-500 relative overflow-hidden ${isLight ? 'fp-light' : ''}`}
       style={{ 
         background: backgroundStyle,
         fontFamily: "Inter, sans-serif"
@@ -95,6 +138,28 @@ const ForgotPassword: React.FC = () => {
         @keyframes move-bg { 
           from { background-position: 0 0; } 
           to { background-position: 4000px 4000px; } 
+        }
+        /* Force readable text in light mode */
+        .fp-light,
+        .fp-light p,
+        .fp-light label,
+        .fp-light span,
+        .fp-light h1,
+        .fp-light h2,
+        .fp-light h3,
+        .fp-light h4 {
+          color: #111827 !important;
+        }
+        .fp-light input,
+        .fp-light select,
+        .fp-light textarea {
+          color: #111827 !important;
+          -webkit-text-fill-color: #111827 !important;
+          background-color: rgba(255,255,255,0.9);
+        }
+        .fp-light ::placeholder {
+          color: #6b7280 !important;
+          opacity: 1;
         }
       `}</style>
 
@@ -154,13 +219,19 @@ const ForgotPassword: React.FC = () => {
       <div className="relative z-10 min-h-screen flex items-center justify-center md:p-6 p-4">
         <div className="w-full max-w-4xl">
           {/* Back to Login Link */}
-          <div className="mb-6 fixed top-3 left-3 z-50 bg-white/10 backdrop-blur-sm p-2 rounded-lg">
+          <div
+            className="mb-6 fixed top-3 left-3 z-50 backdrop-blur-sm p-2 rounded-lg"
+            style={{
+              backgroundColor: colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+              border: colors.isDark ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(0,0,0,0.1)',
+            }}
+          >
             <Link
               to="/login"
-              className={`inline-flex items-center gap-2 ${colors.textSecondary} hover:${colors.text} transition-colors`}
-              style={{ color: accentColor }}
+              className="inline-flex items-center gap-2 transition-colors"
+              style={{ color: colors.isDark ? accentColor : '#111827', fontWeight: 600 }}
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-4 h-4" color={colors.isDark ? accentColor : '#111827'} />
               <span>Back to login</span>
             </Link>
           </div>
@@ -211,18 +282,20 @@ const ForgotPassword: React.FC = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email"
                     required
+                    disabled={loading}
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-3 text-sm md:text-base rounded-xl font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2"
+                  disabled={loading}
+                  className="w-full py-3 text-sm md:text-base rounded-xl font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50"
                   style={{
                     backgroundColor: accentColor,
                     boxShadow: `0 4px 15px ${accentColor}40`,
                   }}
                 >
-                  Get OTP
+                  {loading ? 'Sending...' : 'Get Reset Code'}
                 </button>
               </form>
             </div>
@@ -272,6 +345,7 @@ const ForgotPassword: React.FC = () => {
                     onChange={(e) => setResetEmail(e.target.value)}
                     placeholder="Enter your email"
                     required
+                    disabled={loading}
                   />
                 </div>
 
@@ -291,9 +365,11 @@ const ForgotPassword: React.FC = () => {
                     }`}
                     style={{ backdropFilter: "blur(10px)" }}
                     value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    placeholder="Enter OTP code"
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="Enter 6-digit code"
                     required
+                    maxLength={6}
+                    disabled={loading}
                   />
                 </div>
 
@@ -317,6 +393,7 @@ const ForgotPassword: React.FC = () => {
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="Enter new password"
                       required
+                      disabled={loading}
                     />
                     <button
                       type="button"
@@ -353,6 +430,7 @@ const ForgotPassword: React.FC = () => {
                       onChange={(e) => setConfirmNewPassword(e.target.value)}
                       placeholder="Confirm new password"
                       required
+                      disabled={loading}
                     />
                     <button
                       type="button"
@@ -371,13 +449,14 @@ const ForgotPassword: React.FC = () => {
 
                 <button
                   type="submit"
-                  className="w-full py-3 text-sm md:text-base rounded-xl font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2"
+                  disabled={loading}
+                  className="w-full py-3 text-sm md:text-base rounded-xl font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50"
                   style={{
                     backgroundColor: accentColor,
                     boxShadow: `0 4px 15px ${accentColor}40`,
                   }}
                 >
-                  Reset Password
+                  {loading ? 'Resetting...' : 'Reset Password'}
                 </button>
               </form>
             </div>

@@ -1,14 +1,16 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import KpiCards from "./KpiCards";
 import ForecastCards from "./ForecastCards";
 import ForecastChart from "./forecastCharts";
 import AdvancedInsights from "./AdvancedInsights";
 import AIInsightsPanel from "./AIInsightsPanel";
-import InsightsMarquee from "./InsightsMarquee";
+import EnterpriseInsights from "./EnterpriseInsights";
+import AdditionalInsights from "./AdditionalInsights";
 import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { useTheme } from "../../contexts/ThemeContext";
 import { THEME_CONFIG, ThemeConfig, getGlassmorphismClass } from "../../components/home/theme";
-import { hasFeatureAccess, getFeatureLimit, PricingTier } from "../../utils/featureAccess";
+import { hasFeatureAccess, PricingTier } from "../../utils/featureAccess";
+import { BarChart3, Users, Package, DollarSign, TrendingUp, Building2 } from "lucide-react";
 
 interface TrendPoint {
   label: string;
@@ -186,6 +188,22 @@ export interface InsightsPanelProps {
       highest_avg_order_value?: string;
       lowest_return_rate?: string;
     };
+    // Enterprise-Level Insights
+    predictive_forecast_with_ci?: any;
+    scenario_planning?: any;
+    price_elasticity_analysis?: any;
+    cash_flow_forecast?: any;
+    revenue_attribution?: any;
+    market_opportunity_scoring?: any;
+    executive_summary?: any;
+    predictive_churn_analysis?: any;
+    inventory_optimization?: any;
+    break_even_analysis?: any;
+    customer_journey_mapping?: any;
+    next_best_actions?: any;
+    advanced_anomaly_detection?: any;
+    competitive_positioning?: any;
+    profit_margin_optimization?: any;
   };
   charts?: {
     line_chart?: string;
@@ -237,10 +255,48 @@ const InsightsPanel: React.FC<InsightsPanelProps> = ({
   const { isDark } = useTheme();
   const colors: ThemeConfig = isDark ? THEME_CONFIG.dark : THEME_CONFIG.light;
   const glassmorphismClass = getGlassmorphismClass(colors);
+  const [activeTab, setActiveTab] = useState<string>('overview');
 
   useEffect(() => {
     console.log("Insights prop:", insights);
   }, [insights]);
+
+  // Inject custom scrollbar styles
+  useEffect(() => {
+    const styleId = 'insights-panel-scrollbar-styles';
+    let styleElement = document.getElementById(styleId) as HTMLStyleElement;
+    
+    if (!styleElement) {
+      styleElement = document.createElement('style');
+      styleElement.id = styleId;
+      document.head.appendChild(styleElement);
+    }
+
+    styleElement.textContent = `
+      .insights-panel-scrollable::-webkit-scrollbar {
+        width: 6px;
+      }
+      .insights-panel-scrollable::-webkit-scrollbar-track {
+        background: ${colors.isDark ? 'rgba(11, 27, 59, 0.3)' : 'rgba(229, 231, 235, 0.3)'};
+        border-radius: 10px;
+      }
+      .insights-panel-scrollable::-webkit-scrollbar-thumb {
+        background: ${colors.isDark ? 'rgba(59, 130, 246, 0.6)' : 'rgba(59, 130, 246, 0.4)'};
+        border-radius: 10px;
+      }
+      .insights-panel-scrollable::-webkit-scrollbar-thumb:hover {
+        background: ${colors.isDark ? 'rgba(59, 130, 246, 0.8)' : 'rgba(59, 130, 246, 0.6)'};
+      }
+    `;
+
+    return () => {
+      // Cleanup on unmount
+      const element = document.getElementById(styleId);
+      if (element) {
+        element.remove();
+      }
+    };
+  }, [colors.isDark]);
 
   // ---------- Normalize data ----------
   const totalSales = insights.total_sales ?? 0;
@@ -314,105 +370,288 @@ const InsightsPanel: React.FC<InsightsPanelProps> = ({
         : "Data unavailable"),
   };
 
+  // Define tabs based on user tier
+  const tabs = [
+    {
+      id: 'overview',
+      label: 'Overview',
+      icon: TrendingUp,
+      available: true,
+    },
+    {
+      id: 'sales',
+      label: 'Sales & Revenue',
+      icon: BarChart3,
+      available: userTier === 'startup' || userTier === 'business' || userTier === 'enterprise',
+    },
+    {
+      id: 'customer',
+      label: 'Customer Analytics',
+      icon: Users,
+      available: userTier === 'startup' || userTier === 'business' || userTier === 'enterprise',
+    },
+    {
+      id: 'product',
+      label: 'Product Analytics',
+      icon: Package,
+      available: userTier === 'startup' || userTier === 'business' || userTier === 'enterprise',
+    },
+    {
+      id: 'financial',
+      label: 'Financial & Operations',
+      icon: DollarSign,
+      available: userTier === 'business' || userTier === 'enterprise',
+    },
+    {
+      id: 'enterprise',
+      label: 'Enterprise Insights',
+      icon: Building2,
+      available: userTier === 'enterprise',
+    },
+  ].filter(tab => tab.available);
+
   return (
-    <>
-    <section className={`${glassmorphismClass} p-6 flex flex-col space-y-6 relative`} style={{ boxShadow: colors.cardShadow }}>
-      <h2 className={`text-xl font-semibold ${colors.text}`}>
-        🧠 Insights & Metrics
-      </h2>
+    <section 
+      data-insights-panel
+      className={`${glassmorphismClass} p-1 md:p-2 flex flex-col relative mb-4 transition-all duration-300`} 
+      style={{ 
+        boxShadow: colors.cardShadow,
+        height: 'calc(107vh - 210px)',
+        maxHeight: 'calc(107vh - 210px)',
+        minHeight: '600px'
+      }}
+    >
+      <style>{`
+        [data-insights-panel].blur-sm {
+          filter: blur(4px);
+          -webkit-filter: blur(4px);
+        }
+      `}</style>
+      {/* Header - Fixed */}
+      <div className="flex items-center justify-between mb-2 flex-shrink-0">
+        <h2 className={`text-xl font-semibold ${colors.text}`}>
+          🧠 Insights & Metrics
+        </h2>
+      </div>
 
-      <KpiCards
-        totalProfit={totalProfit}
-        totalSales={totalSales}
-        totalCustomerCount={totalOrders}
-        mostSoldProduct={topProduct}
-        leastSoldProduct={insights.least_sold_product || "N/A"}
-        growthRate={salesGrowth}
-        avgOrderValue={insights.avg_order_value || 0}
-        profitMarginPct={insights.profit_margin_pct || 0}
-        avgProfitPerOrder={insights.avg_profit_per_order || 0}
-        salesVelocity={insights.sales_velocity || 0}
-        uniqueProductsCount={insights.unique_products_count || 0}
-      />
+      {/* Tab Navigation - Sticky */}
+      {tabs.length > 1 && (
+        <div 
+          data-tab-navigation
+          className="flex flex-wrap gap-2 border-b flex-shrink-0  mb-4"
+          style={{ 
+            borderColor: colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+            position: 'sticky',
+            top: 0,
+            zIndex: 10,
+            backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.98)' : 'rgba(255, 255, 255, 0.98)',
+            backdropFilter: 'blur(10px)',
+            paddingTop: '8px',
+            paddingLeft: '12px',
+            marginTop: '-3px',
+            marginLeft: '12px',
+            marginRight: '12px',
+            borderRadius: '12px 12px 0 0',
+            paddingRight: '12px'
+          }}
+        >
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-2 rounded-t-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium ${
+                  isActive
+                    ? `text-white`
+                    : `${colors.textSecondary} hover:${colors.text}`
+                }`}
+                style={
+                  isActive
+                    ? {
+                        background: `linear-gradient(135deg, ${colors.accent} 0%, ${colors.accent}80 100%)`,
+                        boxShadow: `0 2px 8px ${colors.accent}40`,
+                        marginLeft: '0',
+                      }
+                    : {}
+                }
+              >
+                <Icon className="w-4 h-4" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
-      {/* Charts - Sales/Forecast and Profit Trend stacked vertically, full width */}
-      <div className="space-y-6">
-        <ForecastChart
-          salesTrend={salesTrend}
-          forecastTrend={computedForecastTrend}
-        />
+      {/* Tab Content - Scrollable */}
+      <div 
+        className="insights-panel-scrollable overflow-y-auto flex-1" 
+        style={{ 
+          paddingRight: '8px',
+          // Firefox scrollbar
+          scrollbarWidth: 'thin',
+          scrollbarColor: colors.isDark 
+            ? 'rgba(59, 130, 246, 0.6) rgba(11, 27, 59, 0.3)' 
+            : 'rgba(59, 130, 246, 0.4) rgba(229, 231, 235, 0.3)',
+        }}
+      >
+        {/* Overview Tab - Always visible */}
+        <div 
+          className={`space-y-6 px-3 ${activeTab === 'overview' ? 'block' : 'hidden'}`} 
+          data-print-section="overview"
+        >
+            <KpiCards
+              totalProfit={totalProfit}
+              totalSales={totalSales}
+              totalCustomerCount={totalOrders}
+              mostSoldProduct={topProduct}
+              leastSoldProduct={insights.least_sold_product || "N/A"}
+              growthRate={salesGrowth}
+              avgOrderValue={insights.avg_order_value || 0}
+              profitMarginPct={insights.profit_margin_pct || 0}
+              avgProfitPerOrder={insights.avg_profit_per_order || 0}
+              salesVelocity={insights.sales_velocity || 0}
+              uniqueProductsCount={insights.unique_products_count || 0}
+            />
 
-        {/* Profit Trend Chart - only for startup, business, enterprise */}
-        {profitTrend.length > 0 && (userTier === 'startup' || userTier === 'business' || userTier === 'enterprise') && (
-          <div className={`${glassmorphismClass} p-4 rounded-xl w-full`} style={{ boxShadow: colors.cardShadow }}>
-            <h2 className={`text-xl font-semibold ${colors.text} mb-2`}>
-              <span className="material-icons align-middle mr-2">show_chart</span>
-              Profit Trend
-            </h2>
-            <ResponsiveContainer width="100%" height={350}>
-              <LineChart data={profitTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
-                <XAxis dataKey="label" tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
-                <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                    border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
-                    color: colors.isDark ? '#ffffff' : '#111827'
-                  }}
+            {/* Charts - Layout based on tier */}
+            {userTier === 'free' || userTier === 'startup' ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <ForecastChart
+                  salesTrend={salesTrend}
+                  forecastTrend={computedForecastTrend}
                 />
-                <Legend wrapperStyle={{ color: colors.isDark ? '#ffffff' : '#111827' }} />
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  stroke={colors.isDark ? "#4ade80" : "#16a34a"}
-                  name="Profit"
+                {profitTrend.length > 0 && userTier === 'startup' && (
+                  <div className={`${glassmorphismClass} p-4 rounded-xl w-full`} style={{ boxShadow: colors.cardShadow }}>
+                    <h2 className={`text-xl font-semibold ${colors.text} mb-2`}>
+                      <span className="material-icons align-middle mr-2">show_chart</span>
+                      Profit Trend
+                    </h2>
+                    <ResponsiveContainer width="100%" height={350}>
+                      <LineChart data={profitTrend}>
+                        <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
+                        <XAxis dataKey="label" tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+                        <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+                        <Tooltip 
+                          contentStyle={{
+                            backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                            border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                            color: colors.isDark ? '#ffffff' : '#111827'
+                          }}
+                        />
+                        <Legend wrapperStyle={{ color: colors.isDark ? '#ffffff' : '#111827' }} />
+                        <Line
+                          type="monotone"
+                          dataKey="value"
+                          stroke={colors.isDark ? "#4ade80" : "#16a34a"}
+                          name="Profit"
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <ForecastChart
+                  salesTrend={salesTrend}
+                  forecastTrend={computedForecastTrend}
                 />
-              </LineChart>
-            </ResponsiveContainer>
+                {profitTrend.length > 0 && (userTier === 'business' || userTier === 'enterprise') && (
+                  <div className={`${glassmorphismClass} p-4 rounded-xl w-full`} style={{ boxShadow: colors.cardShadow }}>
+                    <h2 className={`text-xl font-semibold ${colors.text} mb-2`}>
+                      <span className="material-icons align-middle mr-2">show_chart</span>
+                      Profit Trend
+                    </h2>
+                    <ResponsiveContainer width="100%" height={350}>
+                      <LineChart data={profitTrend}>
+                        <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
+                        <XAxis dataKey="label" tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+                        <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+                        <Tooltip 
+                          contentStyle={{
+                            backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                            border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                            color: colors.isDark ? '#ffffff' : '#111827'
+                          }}
+                        />
+                        <Legend wrapperStyle={{ color: colors.isDark ? '#ffffff' : '#111827' }} />
+                        <Line
+                          type="monotone"
+                          dataKey="value"
+                          stroke={colors.isDark ? "#4ade80" : "#16a34a"}
+                          name="Profit"
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Forecast Cards - only for startup, business, enterprise */}
+            {(userTier === 'startup' || userTier === 'business' || userTier === 'enterprise') && (
+              <ForecastCards forecast={computedForecast} />
+            )}
+
+            {/* AI-Powered Insights Panel - conditional based on tier */}
+            {hasFeatureAccess(userTier as PricingTier, 'ai_recommendations_3') && (
+              <AIInsightsPanel
+                aiRecommendations={insights.ai_recommendations}
+                aiOpportunities={insights.ai_opportunities}
+                aiRisks={insights.ai_risks}
+                aiAnomalies={insights.ai_anomalies}
+              />
+            )}
+          </div>
+
+        {/* Sales & Revenue Tab */}
+        <div 
+          className={`space-y-6 px-3 ${activeTab === 'sales' ? 'block' : 'hidden'}`} 
+          data-print-section="sales"
+        >
+            <AdditionalInsights insights={insights} userTier={userTier} filterCategory="sales" />
+          </div>
+
+        {/* Customer Analytics Tab */}
+        <div 
+          className={`space-y-6 px-3 ${activeTab === 'customer' ? 'block' : 'hidden'}`} 
+          data-print-section="customer"
+        >
+            <AdvancedInsights insights={insights} userTier={userTier} />
+            <AdditionalInsights insights={insights} userTier={userTier} filterCategory="customer" />
+          </div>
+
+        {/* Product Analytics Tab */}
+        <div 
+          className={`space-y-6 px-3 ${activeTab === 'product' ? 'block' : 'hidden'}`} 
+          data-print-section="product"
+        >
+            <AdditionalInsights insights={insights} userTier={userTier} filterCategory="product" />
+          </div>
+
+        {/* Financial & Operations Tab */}
+        <div 
+          className={`space-y-6 px-3 ${activeTab === 'financial' ? 'block' : 'hidden'}`} 
+          data-print-section="financial"
+        >
+            <AdditionalInsights insights={insights} userTier={userTier} filterCategory="financial" />
+          </div>
+
+        {/* Enterprise Insights Tab */}
+        {userTier === 'enterprise' && (
+          <div 
+            className={`space-y-6 px-3 ${activeTab === 'enterprise' ? 'block' : 'hidden'}`} 
+            data-print-section="enterprise"
+          >
+            <EnterpriseInsights insights={insights} userTier={userTier} />
           </div>
         )}
       </div>
-
-      {/* Advanced Insights Section - only for startup, business, enterprise */}
-      {(userTier === 'startup' || userTier === 'business' || userTier === 'enterprise') && (
-        <AdvancedInsights insights={insights} userTier={userTier} />
-      )}
-
-      {/* AI-Powered Insights Panel - conditional based on tier */}
-      {hasFeatureAccess(userTier as PricingTier, 'ai_recommendations_3') && (
-        <AIInsightsPanel
-          aiRecommendations={insights.ai_recommendations}
-          aiOpportunities={insights.ai_opportunities}
-          aiRisks={insights.ai_risks}
-          aiAnomalies={insights.ai_anomalies}
-        />
-      )}
-
-      {/* Forecast Cards - only for startup, business, enterprise */}
-      {(userTier === 'startup' || userTier === 'business' || userTier === 'enterprise') && (
-        <ForecastCards forecast={computedForecast} />
-      )}
     </section>
-    </>
   );
 };
 
-// Wrap with fragment and add marquee
-const InsightsPanelWithMarquee: React.FC<InsightsPanelProps> = (props) => {
-  return (
-    <div className="relative">
-      <InsightsPanel {...props} />
-      {/* Sticky Marquee at Bottom of Insights Section - positioned relative to content area */}
-      <div className="sticky bottom-0 z-40 -mr-6 -mb-6">
-        <InsightsMarquee
-          alerts={props.insights?.alerts}
-          aiRecommendations={props.insights?.ai_recommendations}
-          text={props.insights?.text}
-        />
-      </div>
-    </div>
-  );
-};
-
-export default InsightsPanelWithMarquee;
+export default InsightsPanel;

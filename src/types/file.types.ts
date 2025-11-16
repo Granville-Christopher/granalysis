@@ -193,6 +193,22 @@ export interface FileInsights {
       highest_avg_order_value?: string;
       lowest_return_rate?: string;
     };
+    // Enterprise-Level Insights
+    executive_summary?: any;
+    predictive_forecast_with_ci?: any;
+    scenario_planning?: any;
+    price_elasticity_analysis?: any;
+    cash_flow_forecast?: any;
+    revenue_attribution?: any;
+    market_opportunity_scoring?: any;
+    predictive_churn_analysis?: any;
+    inventory_optimization?: any;
+    break_even_analysis?: any;
+    customer_journey_mapping?: any;
+    next_best_actions?: any;
+    advanced_anomaly_detection?: any;
+    competitive_positioning?: any;
+    profit_margin_optimization?: any;
   };
 }
 

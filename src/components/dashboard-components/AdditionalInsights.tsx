@@ -6,6 +6,7 @@ import { hasFeatureAccess, getFeatureLimit, PricingTier } from "../../utils/feat
 
 interface AdditionalInsightsProps {
   userTier?: 'free' | 'startup' | 'business' | 'enterprise';
+  filterCategory?: 'sales' | 'customer' | 'product' | 'financial' | 'all';
   insights?: {
     monthly_trends?: Array<{ month: string; sales: number }>;
     top_customers_list?: Array<{ customer: string; revenue: number }>;
@@ -131,7 +132,7 @@ interface AdditionalInsightsProps {
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#ff7300'];
 
-const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userTier = 'free' }) => {
+const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userTier = 'free', filterCategory = 'all' }) => {
   const { isDark } = useTheme();
   const colors: ThemeConfig = isDark ? THEME_CONFIG.dark : THEME_CONFIG.light;
   const glassmorphismClass = getGlassmorphismClass(colors);
@@ -142,10 +143,16 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
     return data.slice(0, limit);
   };
 
+  // Helper to check if insight should be shown based on filter
+  const shouldShow = (category: 'sales' | 'customer' | 'product' | 'financial'): boolean => {
+    if (filterCategory === 'all') return true;
+    return filterCategory === category;
+  };
+
   return (
     <div className="space-y-6">
-      {/* Monthly Trends - only for startup, business, enterprise */}
-      {insights?.monthly_trends && insights.monthly_trends.length > 0 && 
+      {/* Monthly Trends - Sales category */}
+      {shouldShow('sales') && insights?.monthly_trends && insights.monthly_trends.length > 0 && 
        (userTier === 'startup' || userTier === 'business' || userTier === 'enterprise') && (
         <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
           <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>📅 Monthly Sales Trends</h3>
@@ -171,8 +178,8 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
         </div>
       )}
 
-      {/* Top Customers by Revenue and Regional Profit Comparison - Side by Side - only for business and enterprise */}
-      {((insights?.top_customers_list && insights.top_customers_list.length > 0) || 
+      {/* Top Customers by Revenue and Regional Profit Comparison - Side by Side - Sales category */}
+      {shouldShow('sales') && ((insights?.top_customers_list && insights.top_customers_list.length > 0) || 
        (insights?.regional_profit_comparison && insights.regional_profit_comparison.length > 0)) &&
        (userTier === 'business' || userTier === 'enterprise') ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -244,8 +251,8 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
         </div>
       ) : null}
 
-      {/* Payment Method Analysis - only for startup, business, enterprise */}
-      {insights?.payment_method_analysis && insights.payment_method_analysis.length > 0 && 
+      {/* Payment Method Analysis - Sales category */}
+      {shouldShow('sales') && insights?.payment_method_analysis && insights.payment_method_analysis.length > 0 && 
        (userTier === 'startup' || userTier === 'business' || userTier === 'enterprise') && (
         <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
           <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>💳 Payment Method Analysis</h3>
@@ -292,9 +299,9 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
         </div>
       )}
 
-      {/* Top Products by Volume and Price Range Distribution - Side by Side */}
-      {(insights?.top_products_by_volume && insights.top_products_by_volume.length > 0) || 
-       (insights?.price_range_analysis && insights.price_range_analysis.length > 0) ? (
+      {/* Top Products by Volume and Price Range Distribution - Side by Side - Product/Sales category */}
+      {((shouldShow('product') && insights?.top_products_by_volume && insights.top_products_by_volume.length > 0) || 
+       (shouldShow('sales') && insights?.price_range_analysis && insights.price_range_analysis.length > 0)) ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Top Products by Volume */}
           {insights?.top_products_by_volume && insights.top_products_by_volume.length > 0 && (
@@ -403,8 +410,8 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
       )}
 
 
-      {/* Customer Acquisition Trends */}
-      {insights?.customer_acquisition_trends && insights.customer_acquisition_trends.length > 0 && (
+      {/* Customer Acquisition Trends - Sales category */}
+      {shouldShow('sales') && insights?.customer_acquisition_trends && insights.customer_acquisition_trends.length > 0 && (
         <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
           <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>📈 Customer Acquisition Trends</h3>
           <ResponsiveContainer width="100%" height={300}>
@@ -425,8 +432,8 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
         </div>
       )}
 
-      {/* Product Lifecycle */}
-      {insights?.product_lifecycle && insights.product_lifecycle.length > 0 && (
+      {/* Product Lifecycle - Product category */}
+      {shouldShow('product') && insights?.product_lifecycle && insights.product_lifecycle.length > 0 && (
         <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
           <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>🔄 Product Lifecycle Stages</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -459,9 +466,9 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
       )}
 
 
-      {/* Quantity vs Revenue Analysis and Product Performance Matrix - Side by Side */}
-      {(insights?.quantity_vs_revenue && insights.quantity_vs_revenue.length > 0) || 
-       (insights?.product_performance_matrix && insights.product_performance_matrix.length > 0) ? (
+      {/* Quantity vs Revenue Analysis and Product Performance Matrix - Side by Side - Product category */}
+      {shouldShow('product') && ((insights?.quantity_vs_revenue && insights.quantity_vs_revenue.length > 0) || 
+       (insights?.product_performance_matrix && insights.product_performance_matrix.length > 0)) ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Quantity vs Revenue Analysis */}
           {insights?.quantity_vs_revenue && insights.quantity_vs_revenue.length > 0 && (
@@ -474,15 +481,15 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                     type="number" 
                     dataKey="quantity" 
                     name="Quantity"
-                    tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
-                    label={{ value: 'Quantity Sold', position: 'insideBottom', offset: -5, fill: colors.isDark ? '#ffffff' : '#111827' }}
+                    tick={{ fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 11 }}
+                    label={{ value: 'Quantity Sold', position: 'insideBottom', offset: -5, fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 12 }}
                   />
                   <YAxis 
                     type="number" 
                     dataKey="revenue" 
                     name="Revenue"
-                    tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
-                    label={{ value: 'Revenue ($)', angle: -90, position: 'insideLeft', fill: colors.isDark ? '#ffffff' : '#111827' }}
+                    tick={{ fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 11 }}
+                    label={{ value: 'Revenue ($)', angle: -90, position: 'insideLeft', fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 12 }}
                   />
                   <Tooltip 
                     cursor={{ strokeDasharray: '3 3' }}
@@ -588,8 +595,8 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
         </div>
       )}
 
-      {/* Market Basket Pairs */}
-      {insights?.market_basket && insights.market_basket.length > 0 && (
+      {/* Market Basket Pairs - Product category */}
+      {shouldShow('product') && insights?.market_basket && insights.market_basket.length > 0 && (
         <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
           <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>🛒 Frequently Bought Together</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -617,8 +624,8 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
         </div>
       )}
 
-      {/* Financial Health Overview */}
-      {insights?.financial_health && (
+      {/* Financial Health Overview - Financial category */}
+      {shouldShow('financial') && insights?.financial_health && (
         <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
           <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>💼 Financial Health Overview</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -678,112 +685,117 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
         </div>
       )}
 
-      {/* Discount & Coupon Analysis */}
-      {insights?.discount_analysis && (
-        <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
-          <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>💰 Discount & Coupon Analysis</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div className={`p-4 rounded-lg ${colors.isDark ? 'bg-blue-900/30' : 'bg-blue-50'} border ${colors.isDark ? 'border-blue-700' : 'border-blue-200'}`}>
-              <p className={`text-sm ${colors.textSecondary}`}>Total Discounts</p>
-              <p className={`text-2xl font-bold ${colors.text}`}>
-                ${insights.discount_analysis.total_discount?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
-              </p>
-              <p className={`text-xs mt-1 ${colors.textSecondary}`}>
-                {insights.discount_analysis.discount_pct_of_sales?.toFixed(2) || '0.00'}% of sales
-              </p>
+      {/* Discount & Coupon Analysis and Returns Analysis - Side by Side - Financial category */}
+      {shouldShow('financial') && (insights?.discount_analysis || (insights?.returns_analysis && insights.returns_analysis.total_returns && insights.returns_analysis.total_returns > 0)) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Discount & Coupon Analysis */}
+          {insights?.discount_analysis && (
+            <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
+              <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>💰 Discount & Coupon Analysis</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className={`p-4 rounded-lg ${colors.isDark ? 'bg-blue-900/30' : 'bg-blue-50'} border ${colors.isDark ? 'border-blue-700' : 'border-blue-200'}`}>
+                  <p className={`text-sm ${colors.textSecondary}`}>Total Discounts</p>
+                  <p className={`text-2xl font-bold ${colors.text}`}>
+                    ${insights.discount_analysis.total_discount?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
+                  </p>
+                  <p className={`text-xs mt-1 ${colors.textSecondary}`}>
+                    {insights.discount_analysis.discount_pct_of_sales?.toFixed(2) || '0.00'}% of sales
+                  </p>
+                </div>
+                <div className={`p-4 rounded-lg ${colors.isDark ? 'bg-green-900/30' : 'bg-green-50'} border ${colors.isDark ? 'border-green-700' : 'border-green-200'}`}>
+                  <p className={`text-sm ${colors.textSecondary}`}>Discount Rate</p>
+                  <p className={`text-2xl font-bold ${colors.text}`}>
+                    {insights.discount_analysis.discount_rate?.toFixed(2) || '0.00'}%
+                  </p>
+                  <p className={`text-xs mt-1 ${colors.textSecondary}`}>
+                    {insights.discount_analysis.orders_with_discount || 0} of {insights.discount_analysis.total_orders || 0} orders
+                  </p>
+                </div>
+                <div className={`p-4 rounded-lg ${colors.isDark ? 'bg-purple-900/30' : 'bg-purple-50'} border ${colors.isDark ? 'border-purple-700' : 'border-purple-200'}`}>
+                  <p className={`text-sm ${colors.textSecondary}`}>Avg Discount/Order</p>
+                  <p className={`text-2xl font-bold ${colors.text}`}>
+                    ${insights.discount_analysis.avg_discount_per_order?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
+                  </p>
+                </div>
+              </div>
+              {insights.discount_analysis.by_product && insights.discount_analysis.by_product.length > 0 && (
+                <div className="mt-4">
+                  <h4 className={`text-lg font-semibold mb-2 ${colors.text}`}>Top Products by Discount</h4>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={insights.discount_analysis.by_product.slice(0, 10)}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
+                      <XAxis dataKey="product" tick={{ fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 12 }} angle={-45} textAnchor="end" height={100} />
+                      <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                          border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                          color: colors.isDark ? '#ffffff' : '#111827'
+                        }}
+                        formatter={(value: number) => `$${value.toLocaleString()}`}
+                      />
+                      <Bar dataKey="total_discount" fill="#8884d8" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </div>
-            <div className={`p-4 rounded-lg ${colors.isDark ? 'bg-green-900/30' : 'bg-green-50'} border ${colors.isDark ? 'border-green-700' : 'border-green-200'}`}>
-              <p className={`text-sm ${colors.textSecondary}`}>Discount Rate</p>
-              <p className={`text-2xl font-bold ${colors.text}`}>
-                {insights.discount_analysis.discount_rate?.toFixed(2) || '0.00'}%
-              </p>
-              <p className={`text-xs mt-1 ${colors.textSecondary}`}>
-                {insights.discount_analysis.orders_with_discount || 0} of {insights.discount_analysis.total_orders || 0} orders
-              </p>
-            </div>
-            <div className={`p-4 rounded-lg ${colors.isDark ? 'bg-purple-900/30' : 'bg-purple-50'} border ${colors.isDark ? 'border-purple-700' : 'border-purple-200'}`}>
-              <p className={`text-sm ${colors.textSecondary}`}>Avg Discount/Order</p>
-              <p className={`text-2xl font-bold ${colors.text}`}>
-                ${insights.discount_analysis.avg_discount_per_order?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
-              </p>
-            </div>
-          </div>
-          {insights.discount_analysis.by_product && insights.discount_analysis.by_product.length > 0 && (
-            <div className="mt-4">
-              <h4 className={`text-lg font-semibold mb-2 ${colors.text}`}>Top Products by Discount</h4>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={insights.discount_analysis.by_product.slice(0, 10)}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
-                  <XAxis dataKey="product" tick={{ fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 12 }} angle={-45} textAnchor="end" height={100} />
-                  <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
-                  <Tooltip 
-                    contentStyle={{
-                      backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                      border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
-                      color: colors.isDark ? '#ffffff' : '#111827'
-                    }}
-                    formatter={(value: number) => `$${value.toLocaleString()}`}
-                  />
-                  <Bar dataKey="total_discount" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
+          )}
+
+          {/* Returns Analysis */}
+          {insights?.returns_analysis && insights.returns_analysis.total_returns && insights.returns_analysis.total_returns > 0 && (
+            <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
+              <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>↩️ Returns Analysis</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className={`p-4 rounded-lg ${colors.isDark ? 'bg-red-900/30' : 'bg-red-50'} border ${colors.isDark ? 'border-red-700' : 'border-red-200'}`}>
+                  <p className={`text-sm ${colors.textSecondary}`}>Return Rate</p>
+                  <p className={`text-2xl font-bold ${colors.text}`}>
+                    {insights.returns_analysis.return_rate?.toFixed(2) || '0.00'}%
+                  </p>
+                  <p className={`text-xs mt-1 ${colors.textSecondary}`}>
+                    {insights.returns_analysis.total_returns || 0} returns
+                  </p>
+                </div>
+                <div className={`p-4 rounded-lg ${colors.isDark ? 'bg-orange-900/30' : 'bg-orange-50'} border ${colors.isDark ? 'border-orange-700' : 'border-orange-200'}`}>
+                  <p className={`text-sm ${colors.textSecondary}`}>Returned Revenue</p>
+                  <p className={`text-2xl font-bold ${colors.text}`}>
+                    ${insights.returns_analysis.returned_revenue?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
+                  </p>
+                </div>
+                <div className={`p-4 rounded-lg ${colors.isDark ? 'bg-yellow-900/30' : 'bg-yellow-50'} border ${colors.isDark ? 'border-yellow-700' : 'border-yellow-200'}`}>
+                  <p className={`text-sm ${colors.textSecondary}`}>Returned Profit</p>
+                  <p className={`text-2xl font-bold ${colors.text}`}>
+                    ${insights.returns_analysis.returned_profit?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
+                  </p>
+                </div>
+              </div>
+              {insights.returns_analysis.by_product && insights.returns_analysis.by_product.length > 0 && (
+                <div className="mt-4">
+                  <h4 className={`text-lg font-semibold mb-2 ${colors.text}`}>Top Products by Returns</h4>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={insights.returns_analysis.by_product.slice(0, 10)}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
+                      <XAxis dataKey="product" tick={{ fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 12 }} angle={-45} textAnchor="end" height={100} />
+                      <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                          border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                          color: colors.isDark ? '#ffffff' : '#111827'
+                        }}
+                      />
+                      <Bar dataKey="return_count" fill="#ff6b6b" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </div>
           )}
         </div>
       )}
 
-      {/* Returns Analysis */}
-      {insights?.returns_analysis && insights.returns_analysis.total_returns && insights.returns_analysis.total_returns > 0 && (
-        <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
-          <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>↩️ Returns Analysis</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div className={`p-4 rounded-lg ${colors.isDark ? 'bg-red-900/30' : 'bg-red-50'} border ${colors.isDark ? 'border-red-700' : 'border-red-200'}`}>
-              <p className={`text-sm ${colors.textSecondary}`}>Return Rate</p>
-              <p className={`text-2xl font-bold ${colors.text}`}>
-                {insights.returns_analysis.return_rate?.toFixed(2) || '0.00'}%
-              </p>
-              <p className={`text-xs mt-1 ${colors.textSecondary}`}>
-                {insights.returns_analysis.total_returns || 0} returns
-              </p>
-            </div>
-            <div className={`p-4 rounded-lg ${colors.isDark ? 'bg-orange-900/30' : 'bg-orange-50'} border ${colors.isDark ? 'border-orange-700' : 'border-orange-200'}`}>
-              <p className={`text-sm ${colors.textSecondary}`}>Returned Revenue</p>
-              <p className={`text-2xl font-bold ${colors.text}`}>
-                ${insights.returns_analysis.returned_revenue?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
-              </p>
-            </div>
-            <div className={`p-4 rounded-lg ${colors.isDark ? 'bg-yellow-900/30' : 'bg-yellow-50'} border ${colors.isDark ? 'border-yellow-700' : 'border-yellow-200'}`}>
-              <p className={`text-sm ${colors.textSecondary}`}>Returned Profit</p>
-              <p className={`text-2xl font-bold ${colors.text}`}>
-                ${insights.returns_analysis.returned_profit?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
-              </p>
-            </div>
-          </div>
-          {insights.returns_analysis.by_product && insights.returns_analysis.by_product.length > 0 && (
-            <div className="mt-4">
-              <h4 className={`text-lg font-semibold mb-2 ${colors.text}`}>Top Products by Returns</h4>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={insights.returns_analysis.by_product.slice(0, 10)}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
-                  <XAxis dataKey="product" tick={{ fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 12 }} angle={-45} textAnchor="end" height={100} />
-                  <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
-                  <Tooltip 
-                    contentStyle={{
-                      backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                      border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
-                      color: colors.isDark ? '#ffffff' : '#111827'
-                    }}
-                  />
-                  <Bar dataKey="return_count" fill="#ff6b6b" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Shipping & Tax Analysis */}
-      {(insights?.shipping_analysis || insights?.tax_analysis) && (
+      {/* Shipping & Tax Analysis - Financial category */}
+      {shouldShow('financial') && (insights?.shipping_analysis || insights?.tax_analysis) && (
         <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
           <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>🚚 Shipping & Tax Analysis</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -829,8 +841,8 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
         </div>
       )}
 
-      {/* Order Analysis */}
-      {insights?.order_analysis && (
+      {/* Order Analysis - Financial category */}
+      {shouldShow('financial') && insights?.order_analysis && (
         <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
           <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>📦 Order Analysis</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -890,8 +902,8 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
         </div>
       )}
 
-      {/* SKU Analysis */}
-      {insights?.sku_analysis && insights.sku_analysis.length > 0 && (
+      {/* SKU Analysis - Financial category */}
+      {shouldShow('financial') && insights?.sku_analysis && insights.sku_analysis.length > 0 && (
         <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
           <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>🏷️ Top SKUs by Sales</h3>
           <ResponsiveContainer width="100%" height={400}>
@@ -985,8 +997,8 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
         </div>
       )}
 
-      {/* Product Velocity */}
-      {insights?.product_velocity && insights.product_velocity.length > 0 && (
+      {/* Product Velocity - Product category */}
+      {shouldShow('product') && insights?.product_velocity && insights.product_velocity.length > 0 && (
         <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
           <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>⚡ Product Velocity (Units per Day)</h3>
           <ResponsiveContainer width="100%" height={400}>
@@ -1009,8 +1021,8 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
         </div>
       )}
 
-      {/* Cross-Sell & Upsell Opportunities and Warehouse Performance in same row */}
-      {(((insights?.cross_sell_opportunities && insights.cross_sell_opportunities.length > 0) || (insights?.upsell_opportunities && insights.upsell_opportunities.length > 0)) || (insights?.warehouse_analysis && insights.warehouse_analysis.length > 0)) && (
+      {/* Cross-Sell & Upsell Opportunities and Warehouse Performance in same row - Product/Financial category */}
+      {((shouldShow('product') && ((insights?.cross_sell_opportunities && insights.cross_sell_opportunities.length > 0) || (insights?.upsell_opportunities && insights.upsell_opportunities.length > 0))) || (shouldShow('financial') && insights?.warehouse_analysis && insights.warehouse_analysis.length > 0)) && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Cross-Sell & Upsell Opportunities */}
           {((insights?.cross_sell_opportunities && insights.cross_sell_opportunities.length > 0) || (insights?.upsell_opportunities && insights.upsell_opportunities.length > 0)) && (
@@ -1084,8 +1096,8 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
         </div>
       )}
 
-      {/* Customer Value Segments */}
-      {insights?.customer_value_segments && (
+      {/* Customer Value Segments - Customer category */}
+      {shouldShow('customer') && insights?.customer_value_segments && (
         <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
           <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>👥 Customer Value Segmentation</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1135,8 +1147,8 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
         </div>
       )}
 
-      {/* Discount ROI Analysis */}
-      {insights?.discount_roi_analysis && Object.keys(insights.discount_roi_analysis).length > 0 && (
+      {/* Discount ROI Analysis - Financial category */}
+      {shouldShow('financial') && insights?.discount_roi_analysis && Object.keys(insights.discount_roi_analysis).length > 0 && (
         <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
           <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>💰 Discount ROI Analysis</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1171,8 +1183,8 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
         </div>
       )}
 
-      {/* Churn Analysis */}
-      {insights?.churn_analysis && Object.keys(insights.churn_analysis).length > 0 && (
+      {/* Churn Analysis - Customer category */}
+      {shouldShow('customer') && insights?.churn_analysis && Object.keys(insights.churn_analysis).length > 0 && (
         <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
           <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>⚠️ Customer Churn Analysis</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1216,10 +1228,28 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
               <div>
                 <h4 className={`text-lg font-semibold mb-2 ${colors.text}`}>Quarterly Sales</h4>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={insights.seasonal_patterns.quarterly}>
+                  <BarChart 
+                    data={insights.seasonal_patterns.quarterly}
+                    margin={{ left: 10, right: 10, top: 10, bottom: 10 }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
-                    <XAxis dataKey="quarter" tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
-                    <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+                    <XAxis 
+                      dataKey="quarter" 
+                      tick={{ fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 11 }} 
+                    />
+                    <YAxis 
+                      tick={{ 
+                        fill: colors.isDark ? '#ffffff' : '#111827', 
+                        fontSize: 10 
+                      }}
+                      tickFormatter={(value: number) => {
+                        if (value >= 1000000000) return `$${(value / 1000000000).toFixed(1)}B`;
+                        if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+                        if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
+                        return `$${value}`;
+                      }}
+                      width={60}
+                    />
                     <Tooltip 
                       contentStyle={{
                         backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
@@ -1237,10 +1267,28 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
               <div>
                 <h4 className={`text-lg font-semibold mb-2 ${colors.text}`}>Day of Month Patterns</h4>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={insights.seasonal_patterns.day_of_month}>
+                  <BarChart 
+                    data={insights.seasonal_patterns.day_of_month}
+                    margin={{ left: 10, right: 10, top: 10, bottom: 10 }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
-                    <XAxis dataKey="period" tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
-                    <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+                    <XAxis 
+                      dataKey="period" 
+                      tick={{ fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 11 }} 
+                    />
+                    <YAxis 
+                      tick={{ 
+                        fill: colors.isDark ? '#ffffff' : '#111827', 
+                        fontSize: 10 
+                      }}
+                      tickFormatter={(value: number) => {
+                        if (value >= 1000000000) return `$${(value / 1000000000).toFixed(1)}B`;
+                        if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+                        if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
+                        return `$${value}`;
+                      }}
+                      width={60}
+                    />
                     <Tooltip 
                       contentStyle={{
                         backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
@@ -1258,8 +1306,8 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
         </div>
       )}
 
-      {/* CLV by Cohort */}
-      {insights?.clv_by_cohort && insights.clv_by_cohort.length > 0 && (
+      {/* CLV by Cohort - Customer category */}
+      {shouldShow('customer') && insights?.clv_by_cohort && insights.clv_by_cohort.length > 0 && (
         <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
           <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>📊 Customer Lifetime Value by Cohort</h3>
           <ResponsiveContainer width="100%" height={400}>
@@ -1284,8 +1332,8 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
         </div>
       )}
 
-      {/* Payment Impact Analysis */}
-      {insights?.payment_impact_analysis && insights.payment_impact_analysis.by_payment_method && insights.payment_impact_analysis.by_payment_method.length > 0 && (
+      {/* Payment Impact Analysis - Customer category */}
+      {shouldShow('customer') && insights?.payment_impact_analysis && insights.payment_impact_analysis.by_payment_method && insights.payment_impact_analysis.by_payment_method.length > 0 && (
         <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
           <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>💳 Payment Method Impact Analysis</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">

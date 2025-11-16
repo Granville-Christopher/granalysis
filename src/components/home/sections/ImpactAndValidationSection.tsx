@@ -25,7 +25,7 @@ export const ImpactAndValidationSection = ({ colors }: { colors: ThemeConfig }) 
   ];
 
   return (
-    <div className="py-24 transition-colors duration-500" id="impact" style={{ background: colors.isDark ? `linear-gradient(180deg, ${colors.bg} 0%, #081630 100%)` : `linear-gradient(180deg, ${colors.bg} 0%, #FFFFFF 100%)` }}>
+    <div className="py-24 transition-colors duration-500" id="impact" style={{ background: colors.isDark ? `linear-gradient(180deg, ${colors.bg} 0%, #081630 100%)` : `linear-gradient(135deg, #F8F9FA 0%, #FFFFFF 50%, #F0F4F8 100%)` }}>
       <div className="container mx-auto px-6 text-center">
         <h2 className={`md:text-5xl text-3xl font-bold mb-4 ${colors.text}`}>Proven Impact & Client Validation</h2>
         <p className={`md:text-xl text-base mb-16 ${colors.textSecondary}`}>Results are the only metric that matters. See what we deliver.</p>
@@ -33,10 +33,28 @@ export const ImpactAndValidationSection = ({ colors }: { colors: ThemeConfig }) 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
           {metrics.map((m, index) => (
             <ScrollReveal key={index}>
-              <div className={`p-8 ${glassmorphismClass} flex flex-col items-center justify-center h-full transition-all duration-300 hover:scale-105 ${colors.isDark ? 'hover:shadow-[0_0_30px_rgba(79,163,255,0.4)]' : 'hover:shadow-xl'}`}>
+              <div className={`p-8 ${glassmorphismClass} flex flex-col items-center justify-center h-full transition-all duration-300 card-hover ${colors.isDark ? 'hover:shadow-[0_0_30px_rgba(79,163,255,0.4)]' : 'hover:shadow-xl'}`} role="article" aria-label={m.label}>
                 <div className="relative mb-4">
-                  <Sparkles className={`w-5 h-5 md:w-10 md:h-10 ${m.color} transition-transform duration-300`} />
-                  <m.icon className={`w-6 h-6 absolute -bottom-1 -right-1 ${m.color}`} />
+                  <Sparkles 
+                    className="w-5 h-5 md:w-10 md:h-10 transition-transform duration-300" 
+                    style={{ 
+                      color: index === 0 ? '#22c55e' : index === 1 ? '#06b6d4' : '#ec4899',
+                      stroke: index === 0 ? '#22c55e' : index === 1 ? '#06b6d4' : '#ec4899',
+                      fill: index === 0 ? 'rgba(34, 197, 94, 0.3)' : index === 1 ? 'rgba(6, 182, 212, 0.3)' : 'rgba(236, 72, 153, 0.3)',
+                      '--icon-color': index === 0 ? '#22c55e' : index === 1 ? '#06b6d4' : '#ec4899',
+                      '--icon-fill': index === 0 ? 'rgba(34, 197, 94, 0.3)' : index === 1 ? 'rgba(6, 182, 212, 0.3)' : 'rgba(236, 72, 153, 0.3)'
+                    } as React.CSSProperties} 
+                  />
+                  <m.icon 
+                    className="w-6 h-6 absolute -bottom-1 -right-1 transition-transform duration-300" 
+                    style={{ 
+                      color: index === 0 ? '#22c55e' : index === 1 ? '#06b6d4' : '#ec4899',
+                      stroke: index === 0 ? '#22c55e' : index === 1 ? '#06b6d4' : '#ec4899',
+                      fill: index === 0 ? 'rgba(34, 197, 94, 0.3)' : index === 1 ? 'rgba(6, 182, 212, 0.3)' : 'rgba(236, 72, 153, 0.3)',
+                      '--icon-color': index === 0 ? '#22c55e' : index === 1 ? '#06b6d4' : '#ec4899',
+                      '--icon-fill': index === 0 ? 'rgba(34, 197, 94, 0.3)' : index === 1 ? 'rgba(6, 182, 212, 0.3)' : 'rgba(236, 72, 153, 0.3)'
+                    } as React.CSSProperties} 
+                  />
                 </div>
                 <p className={`md:text-6xl text-4xl ${colors.text} mb-2 tracking-tighter font-mono`}>
                   {m.prefix}
@@ -62,8 +80,16 @@ export const ImpactAndValidationSection = ({ colors }: { colors: ThemeConfig }) 
               {clientLogos.map((client, index) => (
                 <div 
                   key={index} 
-                  className={`p-4 rounded-lg transition-all duration-300 cursor-pointer flex flex-col items-center justify-center ${colors.isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-gray-50 hover:bg-gray-100'}`}
+                  className={`p-4 rounded-lg transition-all duration-300 cursor-pointer flex flex-col items-center justify-center card-hover ${colors.isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-gray-50 hover:bg-gray-100'}`}
                   title={client.name}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${client.name} case study`}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                    }
+                  }}
                 >
                   <div className={`w-10 h-10 md:w-16 md:h-16 rounded-full flex items-center justify-center font-bold md:text-lg text-base transition-transform duration-300 hover:scale-110`}
                     style={{ 
@@ -89,7 +115,7 @@ export const ImpactAndValidationSection = ({ colors }: { colors: ThemeConfig }) 
               className="inline-flex items-center gap-2"
             >
               <p className="flex justify-center gap-2">
-                <FileText className="w-4 h-4" />
+                <FileText className="w-4 h-4" style={{ color: accentColor, stroke: accentColor, '--icon-color': accentColor } as React.CSSProperties} />
                 View Case Studies
               </p>
             </Button>
@@ -104,5 +130,4 @@ export const ImpactAndValidationSection = ({ colors }: { colors: ThemeConfig }) 
     </div>
   );
 };
-
 

@@ -71,14 +71,45 @@ const ForecastChart: React.FC<ForecastChartProps> = ({
               color: colors.isDark ? '#ffffff' : '#111827'
             }}
           />
-          <Legend wrapperStyle={{ color: colors.isDark ? '#ffffff' : '#111827' }} />
+          <Legend 
+            wrapperStyle={{ 
+              color: colors.isDark ? '#ffffff' : '#111827',
+              paddingTop: '10px'
+            }}
+            iconType="line"
+            content={({ payload }) => (
+              <ul style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                gap: '20px',
+                listStyle: 'none',
+                padding: 0,
+                margin: 0,
+                color: colors.isDark ? '#ffffff' : '#111827'
+              }}>
+                {payload?.map((entry, index) => (
+                  <li key={index} style={{ color: colors.isDark ? '#ffffff' : '#111827' }}>
+                    <span style={{ 
+                      display: 'inline-block',
+                      width: '20px',
+                      height: '2px',
+                      backgroundColor: entry.color,
+                      marginRight: '8px',
+                      verticalAlign: 'middle'
+                    }}></span>
+                    <span style={{ color: colors.isDark ? '#ffffff' : '#111827' }}>{entry.value}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          />
 
           {/* Actual Sales Line */}
           <Line
             type="monotone"
             dataKey="actual"
             name="Actual Sales"
-            stroke="#2563eb"
+            stroke={colors.isDark ? '#60a5fa' : '#2563eb'}
             strokeWidth={2}
             dot={false}
             connectNulls={false}

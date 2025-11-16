@@ -18,16 +18,16 @@ export const THEME_CONFIG = {
     isDark: true,
   },
   light: {
-    bg: '#F9FAFB',
-    secondaryBg: '#FFFFFF',
+    bg: '#FFFFFF',
+    secondaryBg: '#F8F9FA',
     text: 'text-gray-900',
-    textSecondary: 'text-gray-700',
+    textSecondary: 'text-gray-600',
     accent: LIGHT_ACCENT,
-    glassBg: 'bg-white/80',
-    glassBorder: 'border-gray-200',
-    headerBg: 'rgba(255, 255, 255, 0.8)',
+    glassBg: 'bg-white/90',
+    glassBorder: 'border-gray-200/80',
+    headerBg: 'rgba(255, 255, 255, 0.95)',
     headerScrolled: 'rgba(255, 255, 255, 0.98)',
-    cardShadow: 'none', // No glow
+    cardShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
     isDark: false,
   }
 };
@@ -71,5 +71,4 @@ export const getGlassmorphismClass = (colors: ThemeConfig) => {
   const isDark = colors.isDark;
   return `backdrop-blur-md rounded-2xl shadow-lg transition-all duration-300 ${isDark ? colors.glassBg + ' ' + colors.glassBorder + ' border' : colors.glassBg + ' border border-gray-200'}`;
 };
-
 

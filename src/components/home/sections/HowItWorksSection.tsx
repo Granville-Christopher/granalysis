@@ -36,7 +36,7 @@ export const HowItWorksSection = ({ colors }: { colors: ThemeConfig }) => {
   };
 
   return (
-    <div className="py-24 transition-colors duration-500" style={{ backgroundColor: colors.bg }}>
+    <div className="py-24 transition-colors duration-500" style={{ background: colors.isDark ? colors.bg : `linear-gradient(180deg, #F8F9FA 0%, #FFFFFF 100%)` }}>
       <div className="container mx-auto px-6 text-center">
         <h2 className={`md:text-5xl text-3xl font-bold mb-16 ${colors.text}`}>How Granalysis Works</h2>
         <div className="relative max-w-4xl mx-auto">

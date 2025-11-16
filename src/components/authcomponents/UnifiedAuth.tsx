@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 import { Moon, Sun, Eye, EyeOff, Building2, Phone, Briefcase, Mail, Lock, User } from "lucide-react";
 import api from "../../utils/axios";
 import { Theme, ThemeConfig, THEME_CONFIG, 
@@ -22,11 +22,13 @@ interface UnifiedAuthProps {
 
 const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(location.pathname === '/login');
   const [theme, setTheme] = useState<Theme>('dark');
   const colors: ThemeConfig = theme === 'dark' ? THEME_CONFIG.dark : THEME_CONFIG.light;
   // const glassmorphismClass = getGlassmorphismClass(colors);
   const accentColor = colors.accent;
+  const isLight = !colors.isDark;
 
   // Login state
   const [email, setEmail] = useState("");
@@ -34,6 +36,12 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [loginSuccess, setLoginSuccess] = useState("");
+  const [isCodeLogin, setIsCodeLogin] = useState(false);
+  const [codeRequested, setCodeRequested] = useState(false);
+  const [loginCode, setLoginCode] = useState("");
+  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [twoFactorMessage, setTwoFactorMessage] = useState("");
 
   // Signup state
   const [fullName, setFullName] = useState("");
@@ -70,29 +78,134 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isCodeLogin) {
+      if (!email) {
+        setLoginError("Please enter your email.");
+        return;
+      }
+      setLoginError("");
+      try {
+        if (!codeRequested) {
+          const res = await api.post('/auth/login-code/request', { email }, { withCredentials: true });
+          if (res.data?.status === 'success') {
+            setCodeRequested(true);
+            setLoginSuccess('We sent a 6‑digit code to your email.');
+          } else {
+            setLoginError(res.data?.message || 'Failed to request code');
+          }
+          return;
+        } else {
+          if (!loginCode || loginCode.trim().length !== 6) {
+            setLoginError('Enter the 6‑digit code from your email.');
+            return;
+          }
+          const verify = await api.post('/auth/login-code/verify', { email, code: loginCode.trim() }, { withCredentials: true });
+          if (verify.data?.status === 'success' && verify.data?.user) {
+            sessionStorage.setItem('justLoggedIn', 'true');
+            sessionStorage.setItem('userData', JSON.stringify(verify.data.user));
+            setLoginSuccess('Logged in with code!');
+            await new Promise(r => setTimeout(r, 200));
+            navigate('/dashboard', { replace: true });
+            return;
+          } else {
+            setLoginError(verify.data?.message || 'Invalid or expired code');
+            return;
+          }
+        }
+      } catch (err: any) {
+        setLoginError(err.response?.data?.message || 'Login with code failed');
+        return;
+      }
+    }
     if (!email || !password) {
       setLoginError("Please fill in all fields.");
       return;
     }
     setLoginError("");
     try {
-      const loginResponse = await api.post("/auth/login", { email, password });
-      console.log('[Frontend] Login response:', loginResponse.headers);
+      const loginResponse = await api.post("/auth/login", { email, password }, { withCredentials: true });
+      console.log('[Frontend] Login response:', loginResponse.data);
       
-      const userResponse = await api.get("/auth/me");
-      console.log('[Frontend] /me response:', userResponse.headers);
-      const message = `Logged in! Welcome ${userResponse.data.user.fullName}`;
-      setLoginSuccess(message);
-      setLoginError("");
-      if (onLoginSuccess) {
-        onLoginSuccess(userResponse.data.user);
-      } else {
-        window.location.reload();
+      // If 2FA is required, show code prompt
+      if (loginResponse.data?.status === '2fa_required') {
+        setTwoFactorRequired(true);
+        setTwoFactorMessage("A verification code has been sent to your email. Enter it below to complete login.");
+        setLoginSuccess("");
+        return;
       }
-      console.log('Logged in:', userResponse.data);
+      
+      // Login response already contains user data
+      if (loginResponse.data?.status === 'success' && loginResponse.data?.user) {
+        const message = `Logged in! Welcome ${loginResponse.data.user.fullName}`;
+        setLoginSuccess(message);
+        setLoginError("");
+        
+        // Wait for session cookie to be set, then verify it works
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Verify session is actually working before redirecting
+        try {
+          const verifyResponse = await api.get("/auth/me", { withCredentials: true });
+          if (verifyResponse.data?.status === 'success' && verifyResponse.data?.user) {
+            console.log('[Frontend] Session verified, redirecting...');
+            // Store user data and flag in sessionStorage for immediate auth
+            sessionStorage.setItem('justLoggedIn', 'true');
+            sessionStorage.setItem('userData', JSON.stringify(loginResponse.data.user));
+            if (onLoginSuccess) {
+              onLoginSuccess(loginResponse.data.user);
+            } else {
+              // Use navigate instead of window.location.href to avoid full page reload
+              // This keeps the session cookie available
+              navigate('/dashboard', { replace: true });
+            }
+          } else {
+            // Session not ready, wait a bit more and try again
+            sessionStorage.setItem('justLoggedIn', 'true');
+            sessionStorage.setItem('userData', JSON.stringify(loginResponse.data.user));
+            await new Promise(resolve => setTimeout(resolve, 500));
+            navigate('/dashboard', { replace: true });
+          }
+        } catch (verifyErr) {
+          console.warn('[Frontend] Session verification failed, redirecting anyway:', verifyErr);
+          // Still redirect - session might be set but verification failed
+          // Store flag and user data
+          sessionStorage.setItem('justLoggedIn', 'true');
+          sessionStorage.setItem('userData', JSON.stringify(loginResponse.data.user));
+          await new Promise(resolve => setTimeout(resolve, 500));
+          navigate('/dashboard', { replace: true });
+        }
+        
+        console.log('Logged in:', loginResponse.data);
+      } else {
+        throw new Error('Login failed - invalid response');
+      }
     } catch (err: any) {
+      console.error('[Frontend] Login error:', err);
       setLoginSuccess("");
-      setLoginError(err.response?.data?.message || "Login failed");
+      setLoginError(err.response?.data?.message || err.message || "Login failed");
+    }
+  };
+
+  const handleVerify2FA = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!twoFactorCode || twoFactorCode.trim().length !== 6) {
+      setTwoFactorMessage("Enter the 6‑digit code sent to your email.");
+      return;
+    }
+    try {
+      const verify = await api.post("/auth/2fa/verify", { code: twoFactorCode.trim() }, { withCredentials: true });
+      if (verify.data?.status === 'success' && verify.data?.user) {
+        setTwoFactorMessage("2FA verified. Redirecting...");
+        // Store user data and flag for immediate auth
+        sessionStorage.setItem('justLoggedIn', 'true');
+        sessionStorage.setItem('userData', JSON.stringify(verify.data.user));
+        await new Promise(r => setTimeout(r, 300));
+        navigate('/dashboard', { replace: true });
+      } else {
+        setTwoFactorMessage(verify.data?.message || "Invalid or expired 2FA code.");
+      }
+    } catch (err: any) {
+      setTwoFactorMessage(err.response?.data?.message || "2FA verification failed.");
     }
   };
 
@@ -112,7 +225,7 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
     }
     setSignupError("");
     try {
-      await api.post('/auth/register', { 
+      const registerResponse = await api.post('/auth/register', { 
         fullName, 
         email: signupEmail, 
         password: signupPassword,
@@ -120,7 +233,49 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
         phone,
         businessType
       }, { withCredentials: true });
-      window.location.reload();
+      
+      console.log('[Frontend] Register response:', registerResponse.data);
+      
+      if (registerResponse.data?.status === 'success' && registerResponse.data?.user) {
+        // Registration response already contains user data
+        setSignupSuccess('Registration successful! Redirecting...');
+        
+        // Wait for session cookie to be set, then verify it works
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Verify session is actually working before redirecting
+        try {
+          const verifyResponse = await api.get("/auth/me", { withCredentials: true });
+          if (verifyResponse.data?.status === 'success' && verifyResponse.data?.user) {
+            console.log('[Frontend] Session verified after registration, redirecting...');
+            // Store flag and user data
+            sessionStorage.setItem('justLoggedIn', 'true');
+            sessionStorage.setItem('userData', JSON.stringify(registerResponse.data.user));
+            if (onLoginSuccess) {
+              onLoginSuccess(registerResponse.data.user);
+            } else {
+              // Use navigate instead of window.location.href to avoid full page reload
+              navigate('/dashboard', { replace: true });
+            }
+          } else {
+            // Session not ready, wait a bit more and try again
+            sessionStorage.setItem('justLoggedIn', 'true');
+            sessionStorage.setItem('userData', JSON.stringify(registerResponse.data.user));
+            await new Promise(resolve => setTimeout(resolve, 500));
+            navigate('/dashboard', { replace: true });
+          }
+        } catch (verifyErr) {
+          console.warn('[Frontend] Session verification failed after registration, redirecting anyway:', verifyErr);
+          // Still redirect - session might be set but verification failed
+          // Store flag and user data
+          sessionStorage.setItem('justLoggedIn', 'true');
+          sessionStorage.setItem('userData', JSON.stringify(registerResponse.data.user));
+          await new Promise(resolve => setTimeout(resolve, 500));
+          navigate('/dashboard', { replace: true });
+        }
+      } else {
+        setSignupError('Registration failed. Please try again.');
+      }
     } catch (err: any) {
       setSignupSuccess("");
       setSignupError(err.response?.data?.message || "Signup failed");
@@ -149,7 +304,7 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
 
   return (
     <div
-      className="min-h-screen transition-colors duration-500 relative overflow-hidden"
+      className={`min-h-screen transition-colors duration-500 relative overflow-hidden ${isLight ? 'auth-light' : ''}`}
       style={{
         background: backgroundStyle,
         fontFamily: "Inter, sans-serif",
@@ -185,16 +340,41 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
         .auth-scrollbar::-webkit-scrollbar-thumb:hover {
           background: ${colors.isDark ? "rgba(79, 163, 255, 0.5)" : "#6b7280"};
         }
-        /* Select dropdown styling for dark mode */
+        /* Select dropdown styling */
         select option {
-          background-color: ${colors.isDark ? '#0B1B3B' : '#ffffff'};
-          color: ${colors.isDark ? '#ffffff' : '#111827'};
+          background-color: ${colors.isDark ? '#0B1B3B' : '#ffffff'} !important;
+          color: ${colors.isDark ? '#ffffff' : '#111827'} !important;
         }
         select option:hover,
         select option:focus,
         select option:checked {
-          background-color: ${colors.isDark ? '#1A345B' : '#f3f4f6'};
-          color: ${colors.isDark ? '#ffffff' : '#111827'};
+          background-color: ${colors.isDark ? '#1A345B' : '#f3f4f6'} !important;
+          color: ${colors.isDark ? '#ffffff' : '#111827'} !important;
+        }
+        /* Ensure readable text in light mode */
+        .auth-light, 
+        .auth-light p:not(.pw-match):not(.pw-mismatch),
+        .auth-light label,
+        .auth-light span,
+        .auth-light h1,
+        .auth-light h2,
+        .auth-light h3,
+        .auth-light h4 {
+          color: #111827 !important;
+        }
+        /* Explicit password match feedback colors */
+        .pw-match { color: #22c55e !important; font-weight: 600; }
+        .pw-mismatch { color: #ef4444 !important; font-weight: 600; }
+        .auth-light input,
+        .auth-light select,
+        .auth-light textarea {
+          color: #111827 !important;
+          background-color: rgba(255,255,255,0.9);
+          -webkit-text-fill-color: #111827 !important; /* ensure visible text in WebKit */
+        }
+        .auth-light ::placeholder {
+          color: #6b7280 !important;
+          opacity: 1;
         }
       `}</style>
 
@@ -324,9 +504,13 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
               }`}
             >
               <form
-                onSubmit={handleLogin}
+                onSubmit={twoFactorRequired ? handleVerify2FA : handleLogin}
                 className="rounded-3xl md:p-8 p-4 space-y-6"
-                style={cardStyle}
+                style={{
+                  ...cardStyle,
+                  // Ensure readable text in light mode
+                  color: colors.isDark ? undefined : '#111827',
+                }}
               >
                 <div className="text-center mb-6">
                   <h2 className={`md:text-3xl text-xl font-bold mb-2 ${colors.text}`}>
@@ -338,6 +522,7 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
                 {loginSuccess ? (
                   <div
                     className={`p-4 rounded-lg bg-green-500/20 border border-green-500/50 ${colors.text}`}
+                    style={{ color: colors.isDark ? undefined : '#111827' }}
                   >
                     {loginSuccess}
                   </div>
@@ -345,6 +530,7 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
                   loginError && (
                     <div
                       className={`p-4 rounded-lg bg-red-500/20 border border-red-500/50 ${colors.text}`}
+                      style={{ color: colors.isDark ? undefined : '#111827' }}
                     >
                       {loginError}
                     </div>
@@ -352,63 +538,145 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
                 )}
 
                 <div className="space-y-5">
-                  <div>
-                    <label
-                      className={`block mb-2 font-medium ${colors.textSecondary} flex items-center space-x-2`}
-                    >
-                      <Mail className="w-4 h-4" />
-                      <span className="md:text-base text-xs">Email</span>
-                    </label>
-                    <input
-                      type="email"
-                      className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                        colors.isDark
-                          ? "bg-white/5 border-white/10 text-white placeholder-gray-400 focus:border-blue-400 focus:ring-blue-400/50"
-                          : "bg-white/80 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500/50"
-                      }`}
-                      style={{ backdropFilter: "blur(10px)" }}
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email"
-                      required
-                    />
-                  </div>
+                  {!twoFactorRequired && !isCodeLogin ? (
+                    <>
+                      <div>
+                        <label
+                          className={`block mb-2 font-medium ${colors.textSecondary} flex items-center space-x-2`}
+                        >
+                          <Mail className="w-4 h-4" />
+                          <span className="md:text-base text-xs">Email</span>
+                        </label>
+                        <input
+                          type="email"
+                          className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                            colors.isDark
+                              ? "bg-white/5 border-white/10 text-white placeholder-gray-400 focus:border-blue-400 focus:ring-blue-400/50"
+                              : "bg-white/80 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500/50"
+                          }`}
+                          style={{ backdropFilter: "blur(10px)" }}
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="Enter your email"
+                          required
+                        />
+                      </div>
 
-                  <div>
-                    <label
-                      className={`block mb-2 font-medium ${colors.textSecondary} flex items-center space-x-2`}
-                    >
-                      <Lock className="w-4 h-4" />
-                      <span className="md:text-base text-xs">Password</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 pr-12 ${
-                          colors.isDark
-                            ? "bg-white/5 border-white/10 text-white placeholder-gray-400 focus:border-blue-400 focus:ring-blue-400/50"
-                            : "bg-white/80 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500/50"
-                        }`}
-                        style={{ backdropFilter: "blur(10px)" }}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Enter your password"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${colors.textSecondary} hover:${colors.text} transition-colors`}
-                        tabIndex={-1}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="w-5 h-5" />
-                        ) : (
-                          <Eye className="w-5 h-5" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
+                      <div>
+                        <label
+                          className={`block mb-2 font-medium ${colors.textSecondary} flex items-center space-x-2`}
+                        >
+                          <Lock className="w-4 h-4" />
+                          <span className="md:text-base text-xs">Password</span>
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 pr-12 ${
+                              colors.isDark
+                                ? "bg-white/5 border-white/10 text-white placeholder-gray-400 focus:border-blue-400 focus:ring-blue-400/50"
+                                : "bg-white/80 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500/50"
+                            }`}
+                            style={{ backdropFilter: "blur(10px)" }}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Enter your password"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${colors.textSecondary} hover:${colors.text} transition-colors`}
+                            tabIndex={-1}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="w-5 h-5" />
+                            ) : (
+                              <Eye className="w-5 h-5" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  ) : isCodeLogin ? (
+                    <>
+                      <div>
+                        <label
+                          className={`block mb-2 font-medium ${colors.textSecondary} flex items-center space-x-2`}
+                        >
+                          <Mail className="w-4 h-4" />
+                          <span className="md:text-base text-xs">Email</span>
+                        </label>
+                        <input
+                          type="email"
+                          className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                            colors.isDark
+                              ? "bg-white/5 border-white/10 text-white placeholder-gray-400 focus:border-blue-400 focus:ring-blue-400/50"
+                              : "bg-white/80 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500/50"
+                          }`}
+                          style={{ backdropFilter: "blur(10px)" }}
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="Enter your email"
+                          required
+                        />
+                      </div>
+                      {codeRequested && (
+                        <div>
+                          <label
+                            className={`block mb-2 font-medium ${colors.textSecondary} flex items-center space-x-2`}
+                          >
+                            <Lock className="w-4 h-4" />
+                            <span className="md:text-base text-xs">Code</span>
+                          </label>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            maxLength={6}
+                            className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                              colors.isDark
+                                ? "bg-white/5 border-white/10 text-white placeholder-gray-400 focus:border-blue-400 focus:ring-blue-400/50"
+                                : "bg-white/80 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500/50"
+                            }`}
+                            style={{ backdropFilter: "blur(10px)" }}
+                            value={loginCode}
+                            onChange={(e) => setLoginCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                            placeholder="6‑digit code"
+                            required
+                          />
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <div className={`p-3 rounded-lg ${colors.isDark ? 'bg-white/10' : 'bg-gray-100'} ${colors.text}`}>
+                        {twoFactorMessage || 'Enter the 6‑digit code sent to your email.'}
+                      </div>
+                      <div>
+                        <label
+                          className={`block mb-2 font-medium ${colors.textSecondary} flex items-center space-x-2`}
+                        >
+                          <Lock className="w-4 h-4" />
+                          <span className="md:text-base text-xs">2FA Code</span>
+                        </label>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={6}
+                          className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                            colors.isDark
+                              ? "bg-white/5 border-white/10 text-white placeholder-gray-400 focus:border-blue-400 focus:ring-blue-400/50"
+                              : "bg-white/80 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500/50"
+                          }`}
+                          style={{ backdropFilter: "blur(10px)" }}
+                          value={twoFactorCode}
+                          onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                          placeholder="Enter 6‑digit code"
+                          required
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <button
@@ -419,7 +687,7 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
                     boxShadow: `0 4px 15px ${accentColor}40`,
                   }}
                 >
-                  Login
+                  {isCodeLogin ? (codeRequested ? 'Verify & Login' : 'Get Code') : (twoFactorRequired ? 'Verify Code' : 'Login')}
                 </button>
 
                 {/* Divider */}
@@ -441,12 +709,16 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
                   ></div>
                 </div>
 
-                {/* Google Login Button */}
+                {/* Toggle between password and code login */}
                 <button
                   type="button"
                   onClick={() => {
-                    // TODO: Implement Google OAuth
-                    console.log("Google login clicked");
+                    setIsCodeLogin(!isCodeLogin);
+                    setCodeRequested(false);
+                    setLoginCode('');
+                    setLoginError('');
+                    setLoginSuccess('');
+                    setTwoFactorRequired(false);
                   }}
                   className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center justify-center gap-3 ${
                     colors.isDark
@@ -455,8 +727,7 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
                   }`}
                   style={{ backdropFilter: "blur(10px)" }}
                 >
-                  <GoogleIcon className="w-5 h-5" />
-                  <span className="md:text-base text-xs">Login with Google</span>
+                  <span className="md:text-base text-xs">{isCodeLogin ? 'Login with Password' : 'Login with Code'}</span>
                 </button>
 
                 <div className="text-center space-y-2">
@@ -497,6 +768,8 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
                 className="rounded-3xl md:p-8 p-4 space-y-6 max-h-[90vh] overflow-y-auto auth-scrollbar"
                 style={{
                   ...cardStyle,
+                  // Ensure readable text in light mode
+                  color: colors.isDark ? undefined : '#111827',
                   scrollbarWidth: "thin",
                   scrollbarColor: colors.isDark
                     ? "rgba(79, 163, 255, 0.3) rgba(255, 255, 255, 0.05)"
@@ -513,6 +786,7 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
                 {signupSuccess ? (
                   <div
                     className={`p-4 rounded-lg bg-green-500/20 border border-green-500/50 ${colors.text}`}
+                    style={{ color: colors.isDark ? undefined : '#111827' }}
                   >
                     {signupSuccess}
                   </div>
@@ -520,6 +794,7 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
                   signupError && (
                     <div
                       className={`p-4 rounded-lg bg-red-500/20 border border-red-500/50 ${colors.text}`}
+                      style={{ color: colors.isDark ? undefined : '#111827' }}
                     >
                       {signupError}
                     </div>
@@ -633,18 +908,37 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
                           ? "bg-white/5 border-white/10 text-white focus:border-blue-400 focus:ring-blue-400/50"
                           : "bg-white/80 border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-blue-500/50"
                       }`}
-                      style={{ backdropFilter: "blur(10px)" }}
+                      style={{
+                        backdropFilter: "blur(10px)",
+                        color: colors.isDark ? '#ffffff' : '#111827',
+                        backgroundColor: colors.isDark ? 'rgba(255,255,255,0.05)' : '#ffffff',
+                        WebkitTextFillColor: colors.isDark ? '#ffffff' : '#111827',
+                      }}
                       value={businessType}
                       onChange={(e) => setBusinessType(e.target.value)}
                       required
                     >
-                      <option value="">Select business type</option>
-                      <option value="ecommerce">E-commerce</option>
-                      <option value="retail">Retail</option>
-                      <option value="wholesale">Wholesale</option>
-                      <option value="saas">SaaS</option>
-                      <option value="manufacturing">Manufacturing</option>
-                      <option value="other">Other</option>
+                      <option value="" style={{ color: colors.isDark ? '#ffffff' : '#111827', backgroundColor: colors.isDark ? '#0B1B3B' : '#ffffff' }}>
+                        Select business type
+                      </option>
+                      <option value="ecommerce" style={{ color: colors.isDark ? '#ffffff' : '#111827', backgroundColor: colors.isDark ? '#0B1B3B' : '#ffffff' }}>
+                        E-commerce
+                      </option>
+                      <option value="retail" style={{ color: colors.isDark ? '#ffffff' : '#111827', backgroundColor: colors.isDark ? '#0B1B3B' : '#ffffff' }}>
+                        Retail
+                      </option>
+                      <option value="wholesale" style={{ color: colors.isDark ? '#ffffff' : '#111827', backgroundColor: colors.isDark ? '#0B1B3B' : '#ffffff' }}>
+                        Wholesale
+                      </option>
+                      <option value="saas" style={{ color: colors.isDark ? '#ffffff' : '#111827', backgroundColor: colors.isDark ? '#0B1B3B' : '#ffffff' }}>
+                        SaaS
+                      </option>
+                      <option value="manufacturing" style={{ color: colors.isDark ? '#ffffff' : '#111827', backgroundColor: colors.isDark ? '#0B1B3B' : '#ffffff' }}>
+                        Manufacturing
+                      </option>
+                      <option value="other" style={{ color: colors.isDark ? '#ffffff' : '#111827', backgroundColor: colors.isDark ? '#0B1B3B' : '#ffffff' }}>
+                        Other
+                      </option>
                     </select>
                   </div>
 
@@ -723,6 +1017,14 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
                           )}
                         </button>
                       </div>
+                      {/* Password match feedback */}
+                      {confirmPassword.length > 0 && (
+                        <p
+                          className={`mt-2 text-sm ${confirmPassword === signupPassword ? 'pw-match' : 'pw-mismatch'}`}
+                        >
+                          {confirmPassword === signupPassword ? 'Passwords match' : 'Passwords do not match'}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -757,23 +1059,7 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
                   ></div>
                 </div>
 
-                {/* Google Signup Button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    // TODO: Implement Google OAuth
-                    console.log("Google signup clicked");
-                  }}
-                  className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center justify-center gap-3 ${
-                    colors.isDark
-                      ? "bg-white/10 border border-white/20 text-white hover:bg-white/20"
-                      : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}
-                  style={{ backdropFilter: "blur(10px)" }}
-                >
-                  <GoogleIcon className="w-5 h-5" />
-                  <span>Sign up with Google</span>
-                </button>
+                {/* Removed Google signup button */}
 
                 <div className="text-center">
                   <p className={colors.textSecondary}>
