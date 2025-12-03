@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { THEME_CONFIG, ThemeConfig, getGlassmorphismClass } from "../home/theme";
 import { useTheme } from "../../contexts/ThemeContext";
 import { hasFeatureAccess, getFeatureLimit, PricingTier } from "../../utils/featureAccess";
+import { formatChartCurrency, formatChartNumber, formatYAxisTick, formatTooltipValue } from "../../utils/numberFormatter";
 
 interface AdditionalInsightsProps {
   userTier?: 'free' | 'startup' | 'business' | 'enterprise';
@@ -110,16 +111,29 @@ interface AdditionalInsightsProps {
       is_effective?: boolean;
     };
     churn_analysis?: {
+      total_customers?: number;
+      churned_30_days?: number;
+      churned_60_days?: number;
+      churned_90_days?: number;
+      churned_180_days?: number;
+      churn_rate_30?: number;
+      churn_rate_60?: number;
+      churn_rate_90?: number;
+      avg_days_since_last_order?: number;
+      median_days_since_last_order?: number;
+      // Legacy fields for backward compatibility
       active_customers?: number;
       at_risk_customers?: number;
       churned_customers?: number;
-      total_customers?: number;
-      churn_rate?: number;
       at_risk_rate?: number;
+      churn_rate?: number;
     };
     seasonal_patterns?: {
-      quarterly?: Array<{ quarter: string; sales: number }>;
-      day_of_month?: Array<{ period: string; sales: number }>;
+      monthly?: Array<{ month: number; sales: number; month_name: string }>;
+      quarterly?: Array<{ quarter: number; sales: number }>;
+      day_of_week?: Array<{ day: string; sales: number }>;
+      // Legacy field for backward compatibility
+      day_of_month?: Array<{ day: number; sales: number }>;
     };
     clv_by_cohort?: Array<{ cohort: string; total_revenue: number; customer_count: number; avg_clv: number }>;
     payment_impact_analysis?: {
@@ -132,7 +146,51 @@ interface AdditionalInsightsProps {
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#ff7300'];
 
-const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userTier = 'free', filterCategory = 'all' }) => {
+// Memoized chart components for performance
+const MemoizedBarChart = React.memo(({ data, dataKey, nameKey, ...props }: any) => (
+  <BarChart data={data} {...props}>
+    <CartesianGrid strokeDasharray="3 3" />
+    <XAxis dataKey={nameKey} />
+    <YAxis tickFormatter={formatYAxisTick} />
+    <Tooltip formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)} />
+    <Legend />
+    <Bar dataKey={dataKey} fill="#8884d8" />
+  </BarChart>
+));
+
+const MemoizedLineChart = React.memo(({ data, dataKey, nameKey, ...props }: any) => (
+  <LineChart data={data} {...props}>
+    <CartesianGrid strokeDasharray="3 3" />
+    <XAxis dataKey={nameKey} />
+    <YAxis tickFormatter={formatYAxisTick} />
+    <Tooltip formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)} />
+    <Legend />
+    <Line type="monotone" dataKey={dataKey} stroke="#8884d8" />
+  </LineChart>
+));
+
+const MemoizedPieChart = React.memo(({ data, dataKey, nameKey, ...props }: any) => (
+  <PieChart {...props}>
+    <Pie
+      data={data}
+      dataKey={dataKey}
+      nameKey={nameKey}
+      cx="50%"
+      cy="50%"
+      outerRadius={80}
+      fill="#8884d8"
+      label={(entry: any) => formatChartNumber(entry[dataKey])}
+    >
+      {data.map((entry: any, index: number) => (
+        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+      ))}
+    </Pie>
+    <Tooltip formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)} />
+    <Legend />
+  </PieChart>
+));
+
+const AdditionalInsights: React.FC<AdditionalInsightsProps> = React.memo(({ insights, userTier = 'free', filterCategory = 'all' }) => {
   const { isDark } = useTheme();
   const colors: ThemeConfig = isDark ? THEME_CONFIG.dark : THEME_CONFIG.light;
   const glassmorphismClass = getGlassmorphismClass(colors);
@@ -163,14 +221,17 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
             })()}>
               <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
               <XAxis dataKey="month" tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
-              <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+              <YAxis 
+                tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                tickFormatter={formatYAxisTick}
+              />
               <Tooltip 
                 contentStyle={{
                   backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                   border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                   color: colors.isDark ? '#ffffff' : '#111827'
                 }}
-                formatter={(value: number) => `$${value.toLocaleString()}`}
+                formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
               />
               <Line type="monotone" dataKey="sales" stroke="#0088FE" strokeWidth={2} name="Sales" />
             </LineChart>
@@ -205,14 +266,17 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                     height={120}
                     tick={{ fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 12 }}
                   />
-                  <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+                  <YAxis 
+                    tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                    tickFormatter={formatYAxisTick}
+                  />
                   <Tooltip 
                     contentStyle={{
                       backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                       border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                       color: colors.isDark ? '#ffffff' : '#111827'
                     }}
-                    formatter={(value: number) => `$${value.toLocaleString()}`}
+                    formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
                   />
                   <Bar dataKey="revenue" fill="#00C49F" name="Revenue" />
                 </BarChart>
@@ -228,17 +292,27 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                 <ComposedChart data={insights.regional_profit_comparison}>
                   <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
                   <XAxis dataKey="region" tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
-                  <YAxis yAxisId="left" tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
-                  <YAxis yAxisId="right" orientation="right" tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+                  <YAxis 
+                    yAxisId="left" 
+                    tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                    tickFormatter={formatYAxisTick}
+                  />
+                  <YAxis 
+                    yAxisId="right" 
+                    orientation="right" 
+                    tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                    tickFormatter={formatYAxisTick}
+                  />
                   <Tooltip 
                     contentStyle={{
                       backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                       border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                       color: colors.isDark ? '#ffffff' : '#111827'
                     }}
-                    formatter={(value: number, name: string) => {
-                      if (name === 'Profit Margin') return `${value.toFixed(2)}%`;
-                      return `$${value.toLocaleString()}`;
+                    formatter={(value: number, name?: string | number) => {
+                      const nameStr = typeof name === 'string' ? name : (name !== undefined ? String(name) : '');
+                      if (nameStr.includes('Margin') || nameStr.includes('%')) return `${value.toFixed(2)}%`;
+                      return formatTooltipValue(value, name);
                     }}
                   />
                   <Bar yAxisId="left" dataKey="total_sales" fill="#0088FE" name="Total Sales" />
@@ -278,7 +352,7 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                     border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                     color: colors.isDark ? '#ffffff' : '#111827'
                   }}
-                  formatter={(value: number) => `$${value.toLocaleString()}`}
+                  formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -317,13 +391,17 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                     height={120}
                     tick={{ fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 12 }}
                   />
-                  <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+                  <YAxis 
+                    tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                    tickFormatter={formatYAxisTick}
+                  />
                   <Tooltip 
                     contentStyle={{
                       backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                       border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                       color: colors.isDark ? '#ffffff' : '#111827'
                     }}
+                    formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
                   />
                   <Bar dataKey="quantity" fill="#FFBB28" name="Quantity Sold" />
                 </BarChart>
@@ -339,13 +417,17 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                 <BarChart data={insights.price_range_analysis}>
                   <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
                   <XAxis dataKey="range" tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
-                  <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+                  <YAxis 
+                    tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                    tickFormatter={formatYAxisTick}
+                  />
                   <Tooltip 
                     contentStyle={{
                       backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                       border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                       color: colors.isDark ? '#ffffff' : '#111827'
                     }}
+                    formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
                   />
                   <Bar dataKey="count" fill="#00C49F" name="Count" />
                 </BarChart>
@@ -370,13 +452,17 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                   height={100}
                   tick={{ fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 11 }}
                 />
-                <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+                <YAxis 
+                  tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                  tickFormatter={formatYAxisTick}
+                />
                 <Tooltip 
                   contentStyle={{
                     backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                     border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                     color: colors.isDark ? '#ffffff' : '#111827'
                   }}
+                  formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
                 />
                 <Bar dataKey="count" fill="#FF8042" name="Customers" />
               </BarChart>
@@ -390,7 +476,7 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                   cx="50%"
                   cy="50%"
                   outerRadius={100}
-                  label={(entry: any) => `${entry.segment}: ${entry.count}`}
+                  label={(entry: any) => `${entry.segment}: ${formatChartNumber(entry.count)}`}
                 >
                   {Object.entries(insights.rfm_segments).map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -418,13 +504,17 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
             <LineChart data={insights.customer_acquisition_trends}>
               <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
               <XAxis dataKey="month" tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
-              <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+              <YAxis 
+                tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                tickFormatter={formatYAxisTick}
+              />
               <Tooltip 
                 contentStyle={{
                   backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                   border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                   color: colors.isDark ? '#ffffff' : '#111827'
                 }}
+                formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
               />
               <Line type="monotone" dataKey="new_customers" stroke="#FF8042" strokeWidth={2} name="New Customers" />
             </LineChart>
@@ -482,6 +572,7 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                     dataKey="quantity" 
                     name="Quantity"
                     tick={{ fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 11 }}
+                    tickFormatter={formatYAxisTick}
                     label={{ value: 'Quantity Sold', position: 'insideBottom', offset: -5, fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 12 }}
                   />
                   <YAxis 
@@ -489,6 +580,7 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                     dataKey="revenue" 
                     name="Revenue"
                     tick={{ fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 11 }}
+                    tickFormatter={formatYAxisTick}
                     label={{ value: 'Revenue ($)', angle: -90, position: 'insideLeft', fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 12 }}
                   />
                   <Tooltip 
@@ -498,10 +590,15 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                       border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                       color: colors.isDark ? '#ffffff' : '#111827'
                     }}
-                    formatter={(value: any, name: string) => {
-                      if (name === 'Revenue') return `$${Number(value).toLocaleString()}`;
-                      if (name === 'Revenue per Unit') return `$${Number(value).toFixed(2)}`;
-                      return value;
+                    formatter={(value: any, name?: string | number) => {
+                      const nameStr = typeof name === 'string' ? name : (name !== undefined ? String(name) : '');
+                      if (nameStr === 'Revenue' || nameStr.includes('Revenue')) {
+                        return formatChartCurrency(Number(value));
+                      }
+                      if (nameStr === 'Revenue per Unit') {
+                        return `$${Number(value).toFixed(2)}`;
+                      }
+                      return formatChartNumber(Number(value));
                     }}
                     labelFormatter={(label) => `Product: ${label}`}
                   />
@@ -530,6 +627,7 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                     dataKey="sales_volume" 
                     name="Sales Volume"
                     tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                    tickFormatter={formatYAxisTick}
                     label={{ value: 'Sales Volume ($)', position: 'insideBottom', offset: -5, fill: colors.isDark ? '#ffffff' : '#111827' }}
                   />
                   <YAxis 
@@ -537,6 +635,7 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                     dataKey="profit_margin" 
                     name="Profit Margin %"
                     tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                    tickFormatter={(value: number) => `${value.toFixed(1)}%`}
                     label={{ value: 'Profit Margin (%)', angle: -90, position: 'insideLeft', fill: colors.isDark ? '#ffffff' : '#111827' }}
                   />
                   <ZAxis type="number" dataKey="total_profit" range={[50, 500]} name="Total Profit" />
@@ -547,11 +646,18 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                       border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                       color: colors.isDark ? '#ffffff' : '#111827'
                     }}
-                    formatter={(value: any, name: string) => {
-                      if (name === 'Sales Volume') return `$${Number(value).toLocaleString()}`;
-                      if (name === 'Profit Margin %') return `${Number(value).toFixed(2)}%`;
-                      if (name === 'Total Profit') return `$${Number(value).toLocaleString()}`;
-                      return value;
+                    formatter={(value: any, name?: string | number) => {
+                      const nameStr = typeof name === 'string' ? name : (name !== undefined ? String(name) : '');
+                      if (nameStr === 'Sales Volume' || nameStr.includes('Sales')) {
+                        return formatChartCurrency(Number(value));
+                      }
+                      if (nameStr === 'Profit Margin %' || nameStr.includes('Margin') || nameStr.includes('%')) {
+                        return `${Number(value).toFixed(2)}%`;
+                      }
+                      if (nameStr === 'Total Profit' || nameStr.includes('Profit')) {
+                        return formatChartCurrency(Number(value));
+                      }
+                      return formatChartNumber(Number(value));
                     }}
                     labelFormatter={(label) => `Product: ${label}`}
                   />
@@ -579,14 +685,17 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                 tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
                 label={{ value: 'Hour of Day', position: 'insideBottom', offset: -5, fill: colors.isDark ? '#ffffff' : '#111827' }}
               />
-              <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+              <YAxis 
+                tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                tickFormatter={formatYAxisTick}
+              />
               <Tooltip 
                 contentStyle={{
                   backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                   border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                   color: colors.isDark ? '#ffffff' : '#111827'
                 }}
-                formatter={(value: number) => `$${value.toLocaleString()}`}
+                formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
                 labelFormatter={(label) => `Hour: ${label}:00`}
               />
               <Bar dataKey="sales" fill="#FFBB28" name="Sales" />
@@ -595,8 +704,8 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
         </div>
       )}
 
-      {/* Market Basket Pairs - Product category */}
-      {shouldShow('product') && insights?.market_basket && insights.market_basket.length > 0 && (
+      {/* Market Basket Pairs - Product category (Business/Enterprise) */}
+      {shouldShow('product') && (userTier === 'business' || userTier === 'enterprise') && insights?.market_basket && insights.market_basket.length > 0 && (
         <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
           <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>🛒 Frequently Bought Together</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -725,14 +834,17 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                     <BarChart data={insights.discount_analysis.by_product.slice(0, 10)}>
                       <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
                       <XAxis dataKey="product" tick={{ fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 12 }} angle={-45} textAnchor="end" height={100} />
-                      <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+                      <YAxis 
+                        tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                        tickFormatter={formatYAxisTick}
+                      />
                       <Tooltip 
                         contentStyle={{
                           backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                           border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                           color: colors.isDark ? '#ffffff' : '#111827'
                         }}
-                        formatter={(value: number) => `$${value.toLocaleString()}`}
+                        formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
                       />
                       <Bar dataKey="total_discount" fill="#8884d8" />
                     </BarChart>
@@ -776,13 +888,17 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                     <BarChart data={insights.returns_analysis.by_product.slice(0, 10)}>
                       <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
                       <XAxis dataKey="product" tick={{ fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 12 }} angle={-45} textAnchor="end" height={100} />
-                      <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+                      <YAxis 
+                        tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                        tickFormatter={formatYAxisTick}
+                      />
                       <Tooltip 
                         contentStyle={{
                           backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                           border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                           color: colors.isDark ? '#ffffff' : '#111827'
                         }}
+                        formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
                       />
                       <Bar dataKey="return_count" fill="#ff6b6b" />
                     </BarChart>
@@ -794,8 +910,8 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
         </div>
       )}
 
-      {/* Shipping & Tax Analysis - Financial category */}
-      {shouldShow('financial') && (insights?.shipping_analysis || insights?.tax_analysis) && (
+      {/* Shipping & Tax Analysis - Financial category (Business/Enterprise) */}
+      {shouldShow('financial') && (userTier === 'business' || userTier === 'enterprise') && (insights?.shipping_analysis || insights?.tax_analysis) && (
         <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
           <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>🚚 Shipping & Tax Analysis</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -910,14 +1026,17 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
             <BarChart data={insights.sku_analysis.slice(0, 15)}>
               <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
               <XAxis dataKey="sku" tick={{ fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 10 }} angle={-45} textAnchor="end" height={120} />
-              <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+              <YAxis 
+                tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                tickFormatter={formatYAxisTick}
+              />
               <Tooltip 
                 contentStyle={{
                   backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                   border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                   color: colors.isDark ? '#ffffff' : '#111827'
                 }}
-                formatter={(value: number) => `$${value.toLocaleString()}`}
+                formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
               />
               <Legend wrapperStyle={{ color: colors.isDark ? '#ffffff' : '#111827' }} />
               <Bar dataKey="total_sales" fill="#8884d8" name="Total Sales" />
@@ -927,8 +1046,8 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
         </div>
       )}
 
-      {/* Coupon Analysis */}
-      {insights?.coupon_analysis && insights.coupon_analysis.length > 0 && (
+      {/* Coupon Analysis - Financial category */}
+      {shouldShow('financial') && insights?.coupon_analysis && insights.coupon_analysis.length > 0 && (
         <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
           <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>🎫 Top Coupons by Usage</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -950,8 +1069,8 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
         </div>
       )}
 
-      {/* Customer Purchase Frequency */}
-      {insights?.customer_purchase_frequency && Object.keys(insights.customer_purchase_frequency).length > 0 && (
+      {/* Customer Purchase Frequency - Customer category */}
+      {shouldShow('customer') && insights?.customer_purchase_frequency && Object.keys(insights.customer_purchase_frequency).length > 0 && (
         <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
           <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>📅 Customer Purchase Frequency</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -981,13 +1100,17 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                 <BarChart data={Object.entries(insights.customer_purchase_frequency.frequency_distribution).map(([key, value]) => ({ period: key, count: value }))}>
                   <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
                   <XAxis dataKey="period" tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
-                  <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+                  <YAxis 
+                    tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                    tickFormatter={formatYAxisTick}
+                  />
                   <Tooltip 
                     contentStyle={{
                       backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                       border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                       color: colors.isDark ? '#ffffff' : '#111827'
                     }}
+                    formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
                   />
                   <Bar dataKey="count" fill="#8884d8" />
                 </BarChart>
@@ -997,21 +1120,25 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
         </div>
       )}
 
-      {/* Product Velocity - Product category */}
-      {shouldShow('product') && insights?.product_velocity && insights.product_velocity.length > 0 && (
+      {/* Product Velocity - Product category (Business/Enterprise) */}
+      {shouldShow('product') && (userTier === 'business' || userTier === 'enterprise') && insights?.product_velocity && insights.product_velocity.length > 0 && (
         <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
           <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>⚡ Product Velocity (Units per Day)</h3>
           <ResponsiveContainer width="100%" height={400}>
             <BarChart data={insights.product_velocity.slice(0, 15)}>
               <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
               <XAxis dataKey="product" tick={{ fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 10 }} angle={-45} textAnchor="end" height={120} />
-              <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+              <YAxis 
+                tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                tickFormatter={formatYAxisTick}
+              />
               <Tooltip 
                 contentStyle={{
                   backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                   border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                   color: colors.isDark ? '#ffffff' : '#111827'
                 }}
+                formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
               />
               <Legend wrapperStyle={{ color: colors.isDark ? '#ffffff' : '#111827' }} />
               <Bar dataKey="velocity_per_day" fill="#8884d8" name="Units/Day" />
@@ -1021,8 +1148,8 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
         </div>
       )}
 
-      {/* Cross-Sell & Upsell Opportunities and Warehouse Performance in same row - Product/Financial category */}
-      {((shouldShow('product') && ((insights?.cross_sell_opportunities && insights.cross_sell_opportunities.length > 0) || (insights?.upsell_opportunities && insights.upsell_opportunities.length > 0))) || (shouldShow('financial') && insights?.warehouse_analysis && insights.warehouse_analysis.length > 0)) && (
+      {/* Cross-Sell & Upsell Opportunities and Warehouse Performance in same row - Product/Financial category (Business/Enterprise) */}
+      {((shouldShow('product') && (userTier === 'business' || userTier === 'enterprise') && ((insights?.cross_sell_opportunities && insights.cross_sell_opportunities.length > 0) || (insights?.upsell_opportunities && insights.upsell_opportunities.length > 0))) || (shouldShow('financial') && insights?.warehouse_analysis && insights.warehouse_analysis.length > 0)) && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Cross-Sell & Upsell Opportunities */}
           {((insights?.cross_sell_opportunities && insights.cross_sell_opportunities.length > 0) || (insights?.upsell_opportunities && insights.upsell_opportunities.length > 0)) && (
@@ -1076,13 +1203,27 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                 <ComposedChart data={insights.warehouse_analysis}>
                   <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
                   <XAxis dataKey="warehouse" tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
-                  <YAxis yAxisId="left" tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
-                  <YAxis yAxisId="right" orientation="right" tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+                  <YAxis 
+                    yAxisId="left" 
+                    tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                    tickFormatter={formatYAxisTick}
+                  />
+                  <YAxis 
+                    yAxisId="right" 
+                    orientation="right" 
+                    tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                    tickFormatter={formatYAxisTick}
+                  />
                   <Tooltip 
                     contentStyle={{
                       backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                       border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                       color: colors.isDark ? '#ffffff' : '#111827'
+                    }}
+                    formatter={(value: number, name?: string | number) => {
+                      const nameStr = typeof name === 'string' ? name : (name !== undefined ? String(name) : '');
+                      if (nameStr.includes('Margin') || nameStr.includes('%')) return `${value.toFixed(2)}%`;
+                      return formatTooltipValue(value, name);
                     }}
                   />
                   <Legend wrapperStyle={{ color: colors.isDark ? '#ffffff' : '#111827' }} />
@@ -1187,43 +1328,135 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
       {shouldShow('customer') && insights?.churn_analysis && Object.keys(insights.churn_analysis).length > 0 && (
         <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
           <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>⚠️ Customer Churn Analysis</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className={`p-4 rounded-lg ${colors.isDark ? 'bg-green-900/30' : 'bg-green-50'} border ${colors.isDark ? 'border-green-700' : 'border-green-200'}`}>
-              <p className={`text-sm ${colors.textSecondary}`}>Active Customers</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <div className={`p-4 rounded-lg ${colors.isDark ? 'bg-blue-900/30' : 'bg-blue-50'} border ${colors.isDark ? 'border-blue-700' : 'border-blue-200'}`}>
+              <p className={`text-sm ${colors.textSecondary}`}>Total Customers</p>
               <p className={`text-2xl font-bold ${colors.text}`}>
-                {insights.churn_analysis.active_customers?.toLocaleString() || '0'}
-              </p>
-              <p className={`text-xs mt-1 ${colors.textSecondary}`}>
-                {insights.churn_analysis.total_customers ? ((insights.churn_analysis.active_customers || 0) / insights.churn_analysis.total_customers * 100).toFixed(1) : '0'}% of total
+                {insights.churn_analysis.total_customers?.toLocaleString() || '0'}
               </p>
             </div>
             <div className={`p-4 rounded-lg ${colors.isDark ? 'bg-yellow-900/30' : 'bg-yellow-50'} border ${colors.isDark ? 'border-yellow-700' : 'border-yellow-200'}`}>
-              <p className={`text-sm ${colors.textSecondary}`}>At Risk</p>
+              <p className={`text-sm ${colors.textSecondary}`}>Churned (30 days)</p>
               <p className={`text-2xl font-bold ${colors.text}`}>
-                {insights.churn_analysis.at_risk_customers?.toLocaleString() || '0'}
+                {insights.churn_analysis.churned_30_days?.toLocaleString() || '0'}
               </p>
               <p className={`text-xs mt-1 ${colors.textSecondary}`}>
-                {insights.churn_analysis.at_risk_rate?.toFixed(2) || '0.00'}% of total
+                {insights.churn_analysis.churn_rate_30?.toFixed(2) || '0.00'}%
+              </p>
+            </div>
+            <div className={`p-4 rounded-lg ${colors.isDark ? 'bg-orange-900/30' : 'bg-orange-50'} border ${colors.isDark ? 'border-orange-700' : 'border-orange-200'}`}>
+              <p className={`text-sm ${colors.textSecondary}`}>Churned (60 days)</p>
+              <p className={`text-2xl font-bold ${colors.text}`}>
+                {insights.churn_analysis.churned_60_days?.toLocaleString() || '0'}
+              </p>
+              <p className={`text-xs mt-1 ${colors.textSecondary}`}>
+                {insights.churn_analysis.churn_rate_60?.toFixed(2) || '0.00'}%
               </p>
             </div>
             <div className={`p-4 rounded-lg ${colors.isDark ? 'bg-red-900/30' : 'bg-red-50'} border ${colors.isDark ? 'border-red-700' : 'border-red-200'}`}>
-              <p className={`text-sm ${colors.textSecondary}`}>Churned</p>
+              <p className={`text-sm ${colors.textSecondary}`}>Churned (90 days)</p>
               <p className={`text-2xl font-bold ${colors.text}`}>
-                {insights.churn_analysis.churned_customers?.toLocaleString() || '0'}
+                {insights.churn_analysis.churned_90_days?.toLocaleString() || '0'}
               </p>
               <p className={`text-xs mt-1 ${colors.textSecondary}`}>
-                {insights.churn_analysis.churn_rate?.toFixed(2) || '0.00'}% of total
+                {insights.churn_analysis.churn_rate_90?.toFixed(2) || '0.00'}%
               </p>
             </div>
           </div>
+          {(insights.churn_analysis.avg_days_since_last_order || insights.churn_analysis.median_days_since_last_order) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              {insights.churn_analysis.avg_days_since_last_order && (
+                <div className={`p-4 rounded-lg ${colors.isDark ? 'bg-gray-900/30' : 'bg-gray-50'} border ${colors.isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                  <p className={`text-sm ${colors.textSecondary}`}>Avg Days Since Last Order</p>
+                  <p className={`text-2xl font-bold ${colors.text}`}>
+                    {insights.churn_analysis.avg_days_since_last_order.toFixed(1)} days
+                  </p>
+                </div>
+              )}
+              {insights.churn_analysis.median_days_since_last_order && (
+                <div className={`p-4 rounded-lg ${colors.isDark ? 'bg-gray-900/30' : 'bg-gray-50'} border ${colors.isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                  <p className={`text-sm ${colors.textSecondary}`}>Median Days Since Last Order</p>
+                  <p className={`text-2xl font-bold ${colors.text}`}>
+                    {insights.churn_analysis.median_days_since_last_order.toFixed(1)} days
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+          {/* Legacy support for old churn analysis format */}
+          {!insights.churn_analysis.churned_30_days && insights.churn_analysis.active_customers !== undefined && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              <div className={`p-4 rounded-lg ${colors.isDark ? 'bg-green-900/30' : 'bg-green-50'} border ${colors.isDark ? 'border-green-700' : 'border-green-200'}`}>
+                <p className={`text-sm ${colors.textSecondary}`}>Active Customers</p>
+                <p className={`text-2xl font-bold ${colors.text}`}>
+                  {insights.churn_analysis.active_customers?.toLocaleString() || '0'}
+                </p>
+                <p className={`text-xs mt-1 ${colors.textSecondary}`}>
+                  {insights.churn_analysis.total_customers ? ((insights.churn_analysis.active_customers || 0) / insights.churn_analysis.total_customers * 100).toFixed(1) : '0'}% of total
+                </p>
+              </div>
+              <div className={`p-4 rounded-lg ${colors.isDark ? 'bg-yellow-900/30' : 'bg-yellow-50'} border ${colors.isDark ? 'border-yellow-700' : 'border-yellow-200'}`}>
+                <p className={`text-sm ${colors.textSecondary}`}>At Risk</p>
+                <p className={`text-2xl font-bold ${colors.text}`}>
+                  {insights.churn_analysis.at_risk_customers?.toLocaleString() || '0'}
+                </p>
+                <p className={`text-xs mt-1 ${colors.textSecondary}`}>
+                  {insights.churn_analysis.at_risk_rate?.toFixed(2) || '0.00'}% of total
+                </p>
+              </div>
+              <div className={`p-4 rounded-lg ${colors.isDark ? 'bg-red-900/30' : 'bg-red-50'} border ${colors.isDark ? 'border-red-700' : 'border-red-200'}`}>
+                <p className={`text-sm ${colors.textSecondary}`}>Churned</p>
+                <p className={`text-2xl font-bold ${colors.text}`}>
+                  {insights.churn_analysis.churned_customers?.toLocaleString() || '0'}
+                </p>
+                <p className={`text-xs mt-1 ${colors.textSecondary}`}>
+                  {insights.churn_analysis.churn_rate?.toFixed(2) || '0.00'}% of total
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Seasonal Patterns */}
-      {insights?.seasonal_patterns && (insights.seasonal_patterns.quarterly || insights.seasonal_patterns.day_of_month) && (
+      {/* Seasonal Patterns - Sales category (Business/Enterprise) */}
+      {shouldShow('sales') && (userTier === 'business' || userTier === 'enterprise') && insights?.seasonal_patterns && (insights.seasonal_patterns.monthly || insights.seasonal_patterns.quarterly || insights.seasonal_patterns.day_of_week || insights.seasonal_patterns.day_of_month) && (
         <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ boxShadow: colors.cardShadow }}>
           <h3 className={`text-xl font-semibold mb-4 ${colors.text}`}>📅 Seasonal & Cyclical Patterns</h3>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {insights.seasonal_patterns.monthly && insights.seasonal_patterns.monthly.length > 0 && (
+              <div>
+                <h4 className={`text-lg font-semibold mb-2 ${colors.text}`}>Monthly Sales Patterns</h4>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart 
+                    data={insights.seasonal_patterns.monthly}
+                    margin={{ left: 10, right: 10, top: 10, bottom: 10 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
+                    <XAxis 
+                      dataKey="month_name" 
+                      tick={{ fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 11 }} 
+                    />
+                    <YAxis 
+                      tick={{ 
+                        fill: colors.isDark ? '#ffffff' : '#111827', 
+                        fontSize: 10 
+                      }}
+                      tickFormatter={(value: number) => formatYAxisTick(value)}
+                      width={60}
+                    />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                        border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                        color: colors.isDark ? '#ffffff' : '#111827'
+                      }}
+                      formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
+                    />
+                    <Bar dataKey="sales" fill="#8884d8" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
             {insights.seasonal_patterns.quarterly && insights.seasonal_patterns.quarterly.length > 0 && (
               <div>
                 <h4 className={`text-lg font-semibold mb-2 ${colors.text}`}>Quarterly Sales</h4>
@@ -1242,12 +1475,7 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                         fill: colors.isDark ? '#ffffff' : '#111827', 
                         fontSize: 10 
                       }}
-                      tickFormatter={(value: number) => {
-                        if (value >= 1000000000) return `$${(value / 1000000000).toFixed(1)}B`;
-                        if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
-                        if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
-                        return `$${value}`;
-                      }}
+                      tickFormatter={(value: number) => formatYAxisTick(value)}
                       width={60}
                     />
                     <Tooltip 
@@ -1256,7 +1484,41 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                         border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                         color: colors.isDark ? '#ffffff' : '#111827'
                       }}
-                      formatter={(value: number) => `$${value.toLocaleString()}`}
+                      formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
+                    />
+                    <Bar dataKey="sales" fill="#8884d8" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+            {insights.seasonal_patterns.day_of_week && insights.seasonal_patterns.day_of_week.length > 0 && (
+              <div>
+                <h4 className={`text-lg font-semibold mb-2 ${colors.text}`}>Day of Week Patterns</h4>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart 
+                    data={insights.seasonal_patterns.day_of_week}
+                    margin={{ left: 10, right: 10, top: 10, bottom: 10 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
+                    <XAxis 
+                      dataKey="day" 
+                      tick={{ fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 11 }} 
+                    />
+                    <YAxis 
+                      tick={{ 
+                        fill: colors.isDark ? '#ffffff' : '#111827', 
+                        fontSize: 10 
+                      }}
+                      tickFormatter={(value: number) => formatYAxisTick(value)}
+                      width={60}
+                    />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                        border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                        color: colors.isDark ? '#ffffff' : '#111827'
+                      }}
+                      formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
                     />
                     <Bar dataKey="sales" fill="#8884d8" />
                   </BarChart>
@@ -1273,7 +1535,7 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
                     <XAxis 
-                      dataKey="period" 
+                      dataKey="day" 
                       tick={{ fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 11 }} 
                     />
                     <YAxis 
@@ -1281,12 +1543,7 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                         fill: colors.isDark ? '#ffffff' : '#111827', 
                         fontSize: 10 
                       }}
-                      tickFormatter={(value: number) => {
-                        if (value >= 1000000000) return `$${(value / 1000000000).toFixed(1)}B`;
-                        if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
-                        if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
-                        return `$${value}`;
-                      }}
+                      tickFormatter={(value: number) => formatYAxisTick(value)}
                       width={60}
                     />
                     <Tooltip 
@@ -1295,7 +1552,7 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
                         border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                         color: colors.isDark ? '#ffffff' : '#111827'
                       }}
-                      formatter={(value: number) => `$${value.toLocaleString()}`}
+                      formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
                     />
                     <Bar dataKey="sales" fill="#82ca9d" />
                   </BarChart>
@@ -1314,14 +1571,24 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
             <ComposedChart data={insights.clv_by_cohort}>
               <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
               <XAxis dataKey="cohort" tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
-              <YAxis yAxisId="left" tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
-              <YAxis yAxisId="right" orientation="right" tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+              <YAxis 
+                yAxisId="left" 
+                tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                tickFormatter={formatYAxisTick}
+              />
+              <YAxis 
+                yAxisId="right" 
+                orientation="right" 
+                tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                tickFormatter={formatYAxisTick}
+              />
               <Tooltip 
                 contentStyle={{
                   backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                   border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                   color: colors.isDark ? '#ffffff' : '#111827'
                 }}
+                formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
               />
               <Legend wrapperStyle={{ color: colors.isDark ? '#ffffff' : '#111827' }} />
               <Bar yAxisId="left" dataKey="total_revenue" fill="#8884d8" name="Total Revenue" />
@@ -1358,12 +1625,20 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
             <BarChart data={insights.payment_impact_analysis.by_payment_method}>
               <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
               <XAxis dataKey="payment_method" tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
-              <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+              <YAxis 
+                tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                tickFormatter={formatYAxisTick}
+              />
               <Tooltip 
                 contentStyle={{
                   backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                   border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                   color: colors.isDark ? '#ffffff' : '#111827'
+                }}
+                formatter={(value: number, name?: string | number) => {
+                  const nameStr = typeof name === 'string' ? name : (name !== undefined ? String(name) : '');
+                  if (nameStr.includes('Rate') || nameStr.includes('%')) return `${value.toFixed(2)}%`;
+                  return formatTooltipValue(value, name);
                 }}
               />
               <Legend wrapperStyle={{ color: colors.isDark ? '#ffffff' : '#111827' }} />
@@ -1377,7 +1652,9 @@ const AdditionalInsights: React.FC<AdditionalInsightsProps> = ({ insights, userT
       )}
     </div>
   );
-};
+});
+
+AdditionalInsights.displayName = 'AdditionalInsights';
 
 export default AdditionalInsights;
 

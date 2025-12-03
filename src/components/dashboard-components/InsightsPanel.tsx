@@ -6,11 +6,13 @@ import AdvancedInsights from "./AdvancedInsights";
 import AIInsightsPanel from "./AIInsightsPanel";
 import EnterpriseInsights from "./EnterpriseInsights";
 import AdditionalInsights from "./AdditionalInsights";
+import { CommentsPanel } from "./CommentsPanel";
 import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { useTheme } from "../../contexts/ThemeContext";
 import { THEME_CONFIG, ThemeConfig, getGlassmorphismClass } from "../../components/home/theme";
 import { hasFeatureAccess, PricingTier } from "../../utils/featureAccess";
-import { BarChart3, Users, Package, DollarSign, TrendingUp, Building2 } from "lucide-react";
+import { BarChart3, Users, Package, DollarSign, TrendingUp, Building2, MessageSquare } from "lucide-react";
+import { formatYAxisTick, formatTooltipValue } from "../../utils/numberFormatter";
 
 interface TrendPoint {
   label: string;
@@ -19,6 +21,7 @@ interface TrendPoint {
 
 export interface InsightsPanelProps {
   caption?: string;
+  fileId?: number;
   userTier?: 'free' | 'startup' | 'business' | 'enterprise';
   insights?: {
     total_sales?: number;
@@ -179,8 +182,10 @@ export interface InsightsPanelProps {
       at_risk_rate?: number;
     };
     seasonal_patterns?: {
-      quarterly?: Array<{ quarter: string; sales: number }>;
-      day_of_month?: Array<{ period: string; sales: number }>;
+      monthly?: Array<{ month: number; sales: number; month_name: string }>;
+      quarterly?: Array<{ quarter: number; sales: number }>;
+      day_of_week?: Array<{ day: string; sales: number }>;
+      day_of_month?: Array<{ day: number; sales: number }>;
     };
     clv_by_cohort?: Array<{ cohort: string; total_revenue: number; customer_count: number; avg_clv: number }>;
     payment_impact_analysis?: {
@@ -245,8 +250,9 @@ function generateForecast(salesTrend: TrendPoint[], days = 7): TrendPoint[] {
 
 
 
-const InsightsPanel: React.FC<InsightsPanelProps> = ({
+const InsightsPanel: React.FC<InsightsPanelProps> = React.memo(({
   caption = "No file selected",
+  fileId,
   userTier = 'free',
   insights = {},
   charts = {},
@@ -408,6 +414,12 @@ const InsightsPanel: React.FC<InsightsPanelProps> = ({
       icon: Building2,
       available: userTier === 'enterprise',
     },
+    {
+      id: 'comments',
+      label: 'Comments',
+      icon: MessageSquare,
+      available: !!fileId,
+    },
   ].filter(tab => tab.available);
 
   return (
@@ -417,7 +429,7 @@ const InsightsPanel: React.FC<InsightsPanelProps> = ({
       style={{ 
         boxShadow: colors.cardShadow,
         height: 'calc(107vh - 210px)',
-        maxHeight: 'calc(107vh - 210px)',
+        maxHeight: 'calc(101vh - 200px)',
         minHeight: '600px'
       }}
     >
@@ -533,13 +545,17 @@ const InsightsPanel: React.FC<InsightsPanelProps> = ({
                       <LineChart data={profitTrend}>
                         <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
                         <XAxis dataKey="label" tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
-                        <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+                        <YAxis 
+                          tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                          tickFormatter={formatYAxisTick}
+                        />
                         <Tooltip 
                           contentStyle={{
                             backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                             border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                             color: colors.isDark ? '#ffffff' : '#111827'
                           }}
+                          formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
                         />
                         <Legend wrapperStyle={{ color: colors.isDark ? '#ffffff' : '#111827' }} />
                         <Line
@@ -569,13 +585,17 @@ const InsightsPanel: React.FC<InsightsPanelProps> = ({
                       <LineChart data={profitTrend}>
                         <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
                         <XAxis dataKey="label" tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
-                        <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+                        <YAxis 
+                          tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                          tickFormatter={formatYAxisTick}
+                        />
                         <Tooltip 
                           contentStyle={{
                             backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                             border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                             color: colors.isDark ? '#ffffff' : '#111827'
                           }}
+                          formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
                         />
                         <Legend wrapperStyle={{ color: colors.isDark ? '#ffffff' : '#111827' }} />
                         <Line
@@ -649,9 +669,21 @@ const InsightsPanel: React.FC<InsightsPanelProps> = ({
             <EnterpriseInsights insights={insights} userTier={userTier} />
           </div>
         )}
+
+        {/* Comments Tab */}
+        {fileId && (
+          <div 
+            className={`space-y-6 px-3 ${activeTab === 'comments' ? 'block' : 'hidden'}`} 
+            data-print-section="comments"
+          >
+            <CommentsPanel fileId={fileId} section="insights" />
+          </div>
+        )}
       </div>
     </section>
   );
-};
+});
+
+InsightsPanel.displayName = 'InsightsPanel';
 
 export default InsightsPanel;

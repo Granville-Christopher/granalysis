@@ -16,13 +16,17 @@ export async function fetchInsights(fileId: number, useCache: boolean = true) {
   
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 300000); // 300s (5 minutes) timeout for large datasets
     
     const res = await fetch(`http://localhost:8000/data/${fileId}`, {
       signal: controller.signal,
+      cache: 'no-store', // Prevent browser caching
       headers: {
         'Accept': 'application/json',
         'Accept-Encoding': 'gzip, deflate, br',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
       },
       credentials: 'include',
     });

@@ -10,10 +10,11 @@ export const FeaturesSection = ({ colors }: { colors: ThemeConfig }) => {
   const accentColor = colors.accent;
 
   const featureDetails: Record<number, string> = {
-    0: 'Support for CSV, JSON, Excel, and direct database connections. Automatic data validation and cleaning.',
-    1: 'Powered by proprietary machine learning models trained on millions of sales data points. Real-time processing.',
-    2: 'Get 30-day, 90-day, and annual forecasts with confidence intervals. Receive prioritized action items.',
-    3: 'Fully customizable dashboards with drag-and-drop widgets. Real-time updates and collaborative sharing.'
+    0: 'Support for CSV, JSON, Excel, SQL, and direct database connections. Automatic data validation and cleaning. Magic byte verification ensures file integrity.',
+    1: 'Powered by proprietary machine learning models trained on millions of sales data points. Real-time processing with instant insights generation.',
+    2: 'Get 30-day, 90-day, and annual forecasts with confidence intervals. Receive prioritized action items and risk assessments.',
+    3: 'Fully customizable dashboards with drag-and-drop widgets. Real-time updates and collaborative sharing via secure links.',
+    4: 'Ask questions about your data in natural language. Get instant answers, generate charts on-demand, and receive business insights. Available for Business and Enterprise tiers. End-to-end encrypted chat history.'
   };
 
   return (
@@ -22,10 +23,10 @@ export const FeaturesSection = ({ colors }: { colors: ThemeConfig }) => {
         <h2 className={`md:text-5xl text-3xl font-bold mb-4 ${colors.text}`}>Core Platform Features</h2>
         <p className={`md:text-xl text-base mb-16 ${colors.textSecondary}`}>Everything you need to transform data into actionable insights</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8 items-stretch">
           {featureCards.map((card, index) => {
             const isExpanded = expandedCard === index;
-            const isNew = index === 1;
+            const isNew = index === 4; // AI Chat Assistant is new
             const isPopular = index === 2;
             
             return (

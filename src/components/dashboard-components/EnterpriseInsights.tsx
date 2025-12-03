@@ -4,6 +4,7 @@ import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import { THEME_CONFIG, ThemeConfig, getGlassmorphismClass } from "../home/theme";
 import { useTheme } from "../../contexts/ThemeContext";
 import { X } from "lucide-react";
+import { formatYAxisTick, formatTooltipValue } from "../../utils/numberFormatter";
 
 interface EnterpriseInsightsProps {
   userTier?: 'free' | 'startup' | 'business' | 'enterprise';
@@ -284,14 +285,39 @@ const EnterpriseInsights: React.FC<EnterpriseInsightsProps> = ({ insights, userT
         <div className={`${glassmorphismClass} p-6 rounded-xl`}>
           <h3 className={`text-xl font-semibold ${colors.text} mb-4`}>📋 Executive Summary</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {insights.executive_summary.key_metrics && Object.entries(insights.executive_summary.key_metrics).map(([key, value]) => (
-              <div key={key} className={`p-4 rounded-lg ${colors.isDark ? 'bg-white/5' : 'bg-gray-100/80'}`}>
-                <p className={`text-sm ${colors.textSecondary} mb-1`}>{key.replace(/_/g, ' ').toUpperCase()}</p>
-                <p className={`text-2xl font-bold ${colors.accent}`}>
-                  {typeof value === 'number' ? (key.includes('revenue') || key.includes('profit') ? `$${value.toLocaleString()}` : value.toLocaleString()) : value}
-                </p>
-              </div>
-            ))}
+            {insights.executive_summary.key_metrics && Object.entries(insights.executive_summary.key_metrics).map(([key, value]) => {
+              // Format value based on key type
+              let formattedValue: string;
+              let subtitle: string | null = null;
+              if (typeof value === 'number') {
+                if (key.includes('revenue') || key.includes('profit')) {
+                  formattedValue = `$${value.toLocaleString()}`;
+                } else if (key.includes('rate') || key.includes('margin')) {
+                  // Add percent sign for rate and margin fields
+                  formattedValue = `${value.toLocaleString()}%`;
+                  // Add subtitle for growth_rate to explain calculation method
+                  if (key.includes('growth_rate')) {
+                    subtitle = 'CAGR (Regression-Based)';
+                  }
+                } else {
+                  formattedValue = value.toLocaleString();
+                }
+              } else {
+                formattedValue = String(value);
+              }
+              
+              return (
+                <div key={key} className={`p-4 rounded-lg ${colors.isDark ? 'bg-white/5' : 'bg-gray-100/80'}`}>
+                  <p className={`text-sm ${colors.textSecondary} mb-1`}>{key.replace(/_/g, ' ').toUpperCase()}</p>
+                  <p className={`text-2xl font-bold ${colors.accent}`}>
+                    {formattedValue}
+                  </p>
+                  {subtitle && (
+                    <p className={`text-[10px] ${colors.textSecondary} mt-1 opacity-75`}>{subtitle}</p>
+                  )}
+                </div>
+              );
+            })}
           </div>
           {insights.executive_summary.strategic_recommendations && insights.executive_summary.strategic_recommendations.length > 0 && (
             <div className="mt-4">
@@ -314,8 +340,18 @@ const EnterpriseInsights: React.FC<EnterpriseInsightsProps> = ({ insights, userT
             <AreaChart data={insights.predictive_forecast_with_ci.forecast}>
               <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
               <XAxis dataKey="date" tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
-              <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
-              <Tooltip contentStyle={{ backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)', border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`, color: colors.isDark ? '#ffffff' : '#111827' }} />
+              <YAxis 
+                tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                tickFormatter={formatYAxisTick}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)', 
+                  border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`, 
+                  color: colors.isDark ? '#ffffff' : '#111827' 
+                }}
+                formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
+              />
               <Area type="monotone" dataKey="ci_95_upper" fill="#8884d8" fillOpacity={0.1} stroke="none" />
               <Area type="monotone" dataKey="ci_95_lower" fill="#8884d8" fillOpacity={0.1} stroke="none" />
               <Area type="monotone" dataKey="ci_80_upper" fill="#82ca9d" fillOpacity={0.2} stroke="none" />

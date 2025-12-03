@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/axios';
-import { ArrowLeft, User, CreditCard, Settings, Calendar, XCircle, Edit2, Save, X, Mail, Building, Phone, Briefcase } from 'lucide-react';
+import { ArrowLeft, User, CreditCard, Settings, Calendar, XCircle, Edit2, Save, X, Mail, Building, Phone, Briefcase, CheckCircle } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { THEME_CONFIG, getGlassmorphismClass } from '../components/home/theme';
 import Header from '../components/dashboard-components/Header';
 import Sidebar from '../components/dashboard-components/Sidebar';
+import { ApiKeyManagement } from '../components/dashboard-components/ApiKeyManagement';
+import { WebhookManagement } from '../components/dashboard-components/WebhookManagement';
+import { toast } from '../utils/toast';
 
 const Account: React.FC = () => {
   const navigate = useNavigate();
@@ -174,14 +177,14 @@ const Account: React.FC = () => {
             console.warn('[Account] Subscription status not updated to cancelled:', updatedUser.subscriptionStatus);
           }
         } else {
-          alert('Subscription cancelled, but failed to refresh user data. Please refresh the page.');
+          toast.warning('Subscription cancelled, but failed to refresh user data. Please refresh the page.');
         }
       } else {
-        alert('Failed to cancel subscription. Please try again.');
+        toast.error('Failed to cancel subscription. Please try again.');
       }
     } catch (error) {
       console.error('Failed to cancel subscription:', error);
-      alert('Failed to cancel subscription. Please try again.');
+      toast.error('Failed to cancel subscription. Please try again.');
     } finally {
       setCancelling(false);
     }
@@ -477,7 +480,52 @@ const Account: React.FC = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {renderEditableField('fullName', 'Full Name', <User className="w-4 h-4" />)}
-              {renderEditableField('email', 'Email', <Mail className="w-4 h-4" />, 'email')}
+              <div>
+                {renderEditableField('email', 'Email', <Mail className="w-4 h-4" />, 'email')}
+                {!editing && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className={`text-sm ${user?.emailVerified ? 'text-green-500' : 'text-yellow-500'} flex items-center gap-1`}>
+                      {user?.emailVerified ? (
+                        <>
+                          <CheckCircle className="w-4 h-4" />
+                          Verified
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="w-4 h-4" />
+                          Not Verified
+                        </>
+                      )}
+                    </span>
+                    {!user?.emailVerified && (
+                      <button
+                        onClick={async () => {
+                          try {
+                            setError('');
+                            setSuccess('');
+                            const res = await api.post('/auth/resend-verification', { email: user?.email });
+                            if (res.data?.status === 'success') {
+                              setSuccess('Verification email sent! Please check your inbox.');
+                              setTimeout(() => setSuccess(''), 5000);
+                            } else {
+                              setError(res.data?.message || 'Failed to resend verification email');
+                            }
+                          } catch (err: any) {
+                            setError(err.response?.data?.message || 'Failed to resend verification email');
+                          }
+                        }}
+                        className="text-xs px-3 py-1 rounded-lg transition-all"
+                        style={{
+                          backgroundColor: colors.isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)',
+                          color: colors.accent,
+                        }}
+                      >
+                        Resend Verification
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
               {renderEditableField('companyName', 'Company', <Building className="w-4 h-4" />)}
               {renderEditableField('phone', 'Phone', <Phone className="w-4 h-4" />, 'tel')}
               {renderEditableField('businessType', 'Business Type', <Briefcase className="w-4 h-4" />)}
@@ -623,6 +671,72 @@ const Account: React.FC = () => {
                 </button>
               )}
             </div>
+          </div>
+
+          {/* API Keys Section */}
+          {(user?.pricingTier === 'business' || user?.pricingTier === 'enterprise') && (
+            <div className={`${glassmorphismClass} p-6 mb-6 rounded-xl`} style={{
+              backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+              boxShadow: colors.cardShadow,
+            }}>
+              <ApiKeyManagement />
+            </div>
+          )}
+
+          {/* Webhooks Section */}
+          {(user?.pricingTier === 'business' || user?.pricingTier === 'enterprise') && (
+            <div className={`${glassmorphismClass} p-6 mb-6 rounded-xl`} style={{
+              backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+              boxShadow: colors.cardShadow,
+            }}>
+              <WebhookManagement />
+            </div>
+          )}
+
+          {/* Account Deletion Section */}
+          <div className={`${glassmorphismClass} p-6 rounded-xl`} style={{ 
+            backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+            boxShadow: colors.cardShadow,
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+          }}>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className={`text-lg font-semibold mb-2 ${colors.text}`}>Delete Account</h3>
+                <p className={`text-sm ${colors.textSecondary}`}>
+                  Permanently delete your account and all associated data. This action cannot be undone.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={async () => {
+                if (!window.confirm('Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.')) {
+                  return;
+                }
+                if (!window.confirm('This is your final warning. All data will be permanently deleted. Continue?')) {
+                  return;
+                }
+                try {
+                  const res = await api.post('/auth/delete-account');
+                  if (res.data?.status === 'success') {
+                    sessionStorage.clear();
+                    navigate('/login');
+                  } else {
+                    setError(res.data?.message || 'Failed to delete account');
+                  }
+                } catch (err: any) {
+                  setError(err.response?.data?.message || 'Failed to delete account');
+                }
+              }}
+              className="px-6 py-2 rounded-lg font-semibold transition-all flex items-center gap-2"
+              style={{
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                color: '#ef4444',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+              }}
+            >
+              <XCircle className="w-4 h-4" />
+              Delete Account
+            </button>
           </div>
         </div>
       </div>

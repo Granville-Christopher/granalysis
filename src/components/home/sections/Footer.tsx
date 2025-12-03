@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ThemeConfig } from '../theme';
 import { Mail, Linkedin, Github, ArrowUp, } from "lucide-react";
 import { Button } from '../ui/Button';
+import { toast } from '../../../utils/toast';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXTwitter } from '@fortawesome/free-brands-svg-icons';
 
@@ -12,7 +14,7 @@ export const Footer = ({ colors }: { colors: ThemeConfig }) => {
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle newsletter signup
-    alert('Thank you for subscribing!');
+    toast.success('Thank you for subscribing!');
     setEmail('');
   };
 
@@ -206,31 +208,31 @@ export const Footer = ({ colors }: { colors: ThemeConfig }) => {
                 </a>
               </li>
               <li>
-                <a
-                  href="#terms"
+                <Link
+                  to="/terms"
                   className={`hover:${colors.text} transition-colors`}
                   style={{ color: "inherit" }}
                 >
                   Terms of Service
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#privacy"
+                <Link
+                  to="/privacy"
                   className={`hover:${colors.text} transition-colors`}
                   style={{ color: "inherit" }}
                 >
                   Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#cookies"
+                <Link
+                  to="/cookies"
                   className={`hover:${colors.text} transition-colors`}
                   style={{ color: "inherit" }}
                 >
                   Cookie Policy
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

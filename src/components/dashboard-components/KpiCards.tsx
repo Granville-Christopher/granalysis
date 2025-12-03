@@ -74,27 +74,71 @@ const KpiCards: React.FC<KpiCardsProps> = React.memo(({
   const textColor = isDark ? 'text-white' : 'text-gray-900';
   const textSecondaryColor = isDark ? 'text-gray-300' : 'text-gray-600';
 
+  // Helper to format large numbers with abbreviations and return both truncated and full versions
+  const formatLargeNumber = (num: number, prefix: string = ''): { display: string; full: string } => {
+    const full = prefix + num.toLocaleString(undefined, { maximumFractionDigits: 2 });
+    
+    // If number is very large, create abbreviated version
+    if (num >= 1_000_000_000_000) {
+      const trillions = num / 1_000_000_000_000;
+      return {
+        display: `${prefix}${trillions.toFixed(2)}T...`,
+        full: full
+      };
+    } else if (num >= 1_000_000_000) {
+      const billions = num / 1_000_000_000;
+      return {
+        display: `${prefix}${billions.toFixed(2)}B...`,
+        full: full
+      };
+    } else if (num >= 1_000_000) {
+      const millions = num / 1_000_000;
+      return {
+        display: `${prefix}${millions.toFixed(2)}M...`,
+        full: full
+      };
+    }
+    
+    return {
+      display: full,
+      full: full
+    };
+  };
+
+  const totalSalesFormatted = formatLargeNumber(totalSalesNum, '$');
+  const totalProfitFormatted = formatLargeNumber(totalProfitNum, '$');
+  const customerCountFormatted = formatLargeNumber(totalCustomerNum);
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 xl:grid-cols-10 gap-3">
       <div className={`${textColor} p-3 rounded-lg relative transition-all duration-300`} style={getCardStyle('#3b82f6')}>
         <h3 className={`text-xs font-medium ${textSecondaryColor}`}>Total Sales</h3>
         <p className="text-lg font-bold mt-1 truncate">
-          ${totalSalesNum.toLocaleString()}
+          {totalSalesFormatted.display}
         </p>
+        {totalSalesFormatted.display !== totalSalesFormatted.full && (
+          <p className={`text-[10px] ${textSecondaryColor} mt-0.5 opacity-75`}>{totalSalesFormatted.full}</p>
+        )}
       </div>
 
       <div className={`${textColor} p-3 rounded-lg relative transition-all duration-300`} style={getCardStyle('#a855f7')}>
         <h3 className={`text-xs font-medium ${textSecondaryColor}`}>Total Profit</h3>
         <p className="text-lg font-bold mt-1 truncate">
-          ${totalProfitNum.toLocaleString()}
+          {totalProfitFormatted.display}
         </p>
+        {totalProfitFormatted.display !== totalProfitFormatted.full && (
+          <p className={`text-[10px] ${textSecondaryColor} mt-0.5 opacity-75`}>{totalProfitFormatted.full}</p>
+        )}
       </div>
 
       <div className={`${textColor} p-3 rounded-lg relative transition-all duration-300`} style={getCardStyle('#10b981')}>
         <h3 className={`text-xs font-medium ${textSecondaryColor}`}>Customer Count</h3>
         <p className="text-lg font-bold mt-1 truncate">
-          {totalCustomerNum.toLocaleString()}
+          {customerCountFormatted.display}
         </p>
+        {customerCountFormatted.display !== customerCountFormatted.full && (
+          <p className={`text-[10px] ${textSecondaryColor} mt-0.5 opacity-75`}>{customerCountFormatted.full}</p>
+        )}
       </div>
 
       <div className={`${textColor} p-3 rounded-lg relative transition-all duration-300`} style={getCardStyle('#eab308')}>
@@ -114,13 +158,24 @@ const KpiCards: React.FC<KpiCardsProps> = React.memo(({
       <div className={`${textColor} p-3 rounded-lg relative transition-all duration-300`} style={getCardStyle('#ef4444')}>
         <h3 className={`text-xs font-medium ${textSecondaryColor}`}>Sales Growth Rate</h3>
         <p className="text-lg font-bold mt-1 truncate">{growthRateNum.toFixed(2)}%</p>
+        <p className={`text-[10px] ${textSecondaryColor} mt-0.5 opacity-75`}>CAGR (Regression-Based)</p>
       </div>
 
       <div className={`${textColor} p-3 rounded-lg relative transition-all duration-300`} style={getCardStyle('#6366f1')}>
         <h3 className={`text-xs font-medium ${textSecondaryColor}`}>Avg Order Value</h3>
-        <p className="text-lg font-bold mt-1 truncate">
-          ${avgOrderValueNum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </p>
+        {(() => {
+          const formatted = formatLargeNumber(avgOrderValueNum, '$');
+          return (
+            <>
+              <p className="text-lg font-bold mt-1 truncate">
+                {formatted.display}
+              </p>
+              {formatted.display !== formatted.full && (
+                <p className={`text-[10px] ${textSecondaryColor} mt-0.5 opacity-75`}>{formatted.full}</p>
+              )}
+            </>
+          );
+        })()}
       </div>
 
       <div className={`${textColor} p-3 rounded-lg relative transition-all duration-300`} style={getCardStyle('#14b8a6')}>
@@ -130,16 +185,38 @@ const KpiCards: React.FC<KpiCardsProps> = React.memo(({
 
       <div className={`${textColor} p-3 rounded-lg relative transition-all duration-300`} style={getCardStyle('#ec4899')}>
         <h3 className={`text-xs font-medium ${textSecondaryColor}`}>Avg Profit/Order</h3>
-        <p className="text-lg font-bold mt-1 truncate">
-          ${avgProfitPerOrderNum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </p>
+        {(() => {
+          const formatted = formatLargeNumber(avgProfitPerOrderNum, '$');
+          return (
+            <>
+              <p className="text-lg font-bold mt-1 truncate">
+                {formatted.display}
+              </p>
+              {formatted.display !== formatted.full && (
+                <p className={`text-[10px] ${textSecondaryColor} mt-0.5 opacity-75`}>{formatted.full}</p>
+              )}
+            </>
+          );
+        })()}
       </div>
 
       <div className={`${textColor} p-3 rounded-lg relative transition-all duration-300`} style={getCardStyle('#06b6d4')}>
         <h3 className={`text-xs font-medium ${textSecondaryColor}`}>Sales Velocity</h3>
-        <p className="text-lg font-bold mt-1 truncate">
-          ${salesVelocityNum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/day
-        </p>
+        {(() => {
+          const formatted = formatLargeNumber(salesVelocityNum, '$');
+          const displayWithSuffix = formatted.display + '/day';
+          const fullWithSuffix = formatted.full + '/day';
+          return (
+            <>
+              <p className="text-lg font-bold mt-1 truncate">
+                {displayWithSuffix}
+              </p>
+              {formatted.display !== formatted.full && (
+                <p className={`text-[10px] ${textSecondaryColor} mt-0.5 opacity-75`}>{fullWithSuffix}</p>
+              )}
+            </>
+          );
+        })()}
       </div>
     </div>
   );

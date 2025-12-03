@@ -5,6 +5,7 @@ import { THEME_CONFIG, ThemeConfig, getGlassmorphismClass } from '../components/
 import { pricingData } from '../components/home/data';
 import { featureComparison, FeatureRow } from '../utils/featureComparison';
 import { useTheme } from '../contexts/ThemeContext';
+import { toast } from '../utils/toast';
 import { Button } from '../components/home/ui/Button';
 
 const PricingPage: React.FC = () => {
@@ -31,7 +32,7 @@ const PricingPage: React.FC = () => {
   const lightAccent1 = `rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, ${colors.isDark ? '0.25' : '0.35'})`;
   const lightAccent2 = `rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, ${colors.isDark ? '0.15' : '0.25'})`;
   const lightAccent3 = `rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, ${colors.isDark ? '0.08' : '0.15'})`;
-  const lightAccentBorder = `rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, ${colors.isDark ? '0.4' : '0.5'})`;
+  // const lightAccentBorder = `rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, ${colors.isDark ? '0.4' : '0.5'})`; // Reserved for future use
 
   const computePrices = useMemo(() => {
     return (base: number) => {
@@ -227,8 +228,7 @@ const PricingPage: React.FC = () => {
         {/* Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
           {pricingData.map((tier, index) => {
-            const { monthlyPrice, annualPrice } = computePrices(tier.price);
-            const displayPrice = annual ? annualPrice : monthlyPrice;
+            const { annualPrice } = computePrices(tier.price);
             const pricePeriod = annual ? '/year' : '/month';
 
             const getPremiumGradient = () => {
@@ -295,7 +295,7 @@ const PricingPage: React.FC = () => {
                   )}
                   <div className="flex items-baseline gap-2">
                     <span className={`text-4xl font-bold ${colors.text}`}>
-                      ${annual && tier.price > 0 ? Math.round(tier.price * 12 * 0.85) : (tier.price > 0 && !annual ? Math.round(tier.price * 0.5) : tier.price)}
+                      ${annual && tier.price > 0 ? annualPrice : (tier.price > 0 && !annual ? Math.round(tier.price * 0.5) : tier.price)}
                     </span>
                     {tier.price > 0 && (
                       <span className={`text-lg ${colors.textSecondary}`}>{pricePeriod}</span>
@@ -346,7 +346,7 @@ const PricingPage: React.FC = () => {
                 {tier.title === 'Enterprise' && (
                   <button
                     className={`mt-2 text-sm ${colors.textSecondary} hover:${colors.text} transition-colors text-center w-full`}
-                    onClick={() => alert('Contact sales for Enterprise pricing')}
+                    onClick={() => toast.info('Contact sales for Enterprise pricing')}
                   >
                     Contact Sales →
                   </button>

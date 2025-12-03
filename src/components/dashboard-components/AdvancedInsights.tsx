@@ -1,9 +1,10 @@
-import React, { useEffect } from "react";
+import React, { useEffect, memo } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { THEME_CONFIG, ThemeConfig, getGlassmorphismClass } from "../home/theme";
 import { useTheme } from "../../contexts/ThemeContext";
 import AdditionalInsights from "./AdditionalInsights";
 import { hasFeatureAccess, getFeatureLimit, PricingTier } from "../../utils/featureAccess";
+import { formatChartCurrency, formatChartNumber, formatYAxisTick, formatTooltipValue } from "../../utils/numberFormatter";
 
 interface AdvancedInsightsProps {
   userTier?: 'free' | 'startup' | 'business' | 'enterprise';
@@ -139,8 +140,10 @@ interface AdvancedInsightsProps {
       at_risk_rate?: number;
     };
     seasonal_patterns?: {
-      quarterly?: Array<{ quarter: string; sales: number }>;
-      day_of_month?: Array<{ period: string; sales: number }>;
+      monthly?: Array<{ month: number; sales: number; month_name: string }>;
+      quarterly?: Array<{ quarter: number; sales: number }>;
+      day_of_week?: Array<{ day: string; sales: number }>;
+      day_of_month?: Array<{ day: number; sales: number }>;
     };
     clv_by_cohort?: Array<{ cohort: string; total_revenue: number; customer_count: number; avg_clv: number }>;
     payment_impact_analysis?: {
@@ -151,7 +154,7 @@ interface AdvancedInsightsProps {
   };
 }
 
-const AdvancedInsights: React.FC<AdvancedInsightsProps> = ({ insights, userTier = 'free' }) => {
+const AdvancedInsights: React.FC<AdvancedInsightsProps> = memo(({ insights, userTier = 'free' }) => {
   const { isDark } = useTheme();
   const colors: ThemeConfig = isDark ? THEME_CONFIG.dark : THEME_CONFIG.light;
   const glassmorphismClass = getGlassmorphismClass(colors);
@@ -242,7 +245,7 @@ const AdvancedInsights: React.FC<AdvancedInsightsProps> = ({ insights, userTier 
                   boxShadow: `0 8px 32px 0 ${isDark ? 'rgba(0, 0, 0, 0.37)' : 'rgba(0, 0, 0, 0.1)'}, inset 0 1px 0 0 ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.5)'}`,
                 }}
               >
-                <p className={`text-sm ${isDark ? 'opacity-90' : 'opacity-80'}`}>Revenue per Customer</p>
+                <p className={`text-sm ${isDark ? 'opacity-90' : 'opacity-80'}`}>Average Revenue per Customer</p>
                 <p className="text-2xl font-bold mt-1">${insights.revenue_per_customer.toFixed(2)}</p>
               </div>
             )}
@@ -274,13 +277,17 @@ const AdvancedInsights: React.FC<AdvancedInsightsProps> = ({ insights, userTier 
                     height={120}
                     tick={{ fill: colors.isDark ? '#ffffff' : '#111827', fontSize: 10 }}
                   />
-                  <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+                  <YAxis 
+                    tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                    tickFormatter={formatYAxisTick}
+                  />
                   <Tooltip 
                     contentStyle={{
                       backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                       border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                       color: colors.isDark ? '#ffffff' : '#111827'
                     }}
+                    formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
                   />
                   <Legend wrapperStyle={{ color: colors.isDark ? '#ffffff' : '#111827' }} />
                   <Bar dataKey="margin_pct" fill="#00C49F" name="Margin %" />
@@ -433,7 +440,7 @@ const AdvancedInsights: React.FC<AdvancedInsightsProps> = ({ insights, userTier 
                       border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                       color: colors.isDark ? '#ffffff' : '#111827'
                     }}
-                    formatter={(value: number) => `$${value.toLocaleString()}`}
+                    formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -460,14 +467,17 @@ const AdvancedInsights: React.FC<AdvancedInsightsProps> = ({ insights, userTier 
                       dataKey="day" 
                       tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
                     />
-                    <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+                    <YAxis 
+                      tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+                      tickFormatter={formatYAxisTick}
+                    />
                     <Tooltip 
                       contentStyle={{
                         backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                         border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                         color: colors.isDark ? '#ffffff' : '#111827'
                       }}
-                      formatter={(value: number) => `$${value.toLocaleString()}`}
+                      formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
                     />
                     <Bar dataKey="sales" fill="#FF8042" name="Sales" />
                   </BarChart>
@@ -508,7 +518,9 @@ const AdvancedInsights: React.FC<AdvancedInsightsProps> = ({ insights, userTier 
       {/* Note: AdditionalInsights is now shown separately in InsightsPanel with category filters */}
     </div>
   );
-};
+});
+
+AdvancedInsights.displayName = 'AdvancedInsights';
 
 export default AdvancedInsights;
 

@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import { useTheme } from "../../contexts/ThemeContext";
 import { THEME_CONFIG, ThemeConfig, getGlassmorphismClass } from "../../components/home/theme";
+import { formatYAxisTick, formatTooltipValue } from "../../utils/numberFormatter";
 
 export interface TrendPoint {
   label: string;
@@ -63,13 +64,17 @@ const ForecastChart: React.FC<ForecastChartProps> = ({
         <LineChart data={mergedTrend}>
           <CartesianGrid strokeDasharray="3 3" stroke={colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
           <XAxis dataKey="label" tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
-          <YAxis tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }} />
+          <YAxis 
+            tick={{ fill: colors.isDark ? '#ffffff' : '#111827' }}
+            tickFormatter={formatYAxisTick}
+          />
           <Tooltip 
             contentStyle={{
               backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
               border: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
               color: colors.isDark ? '#ffffff' : '#111827'
             }}
+            formatter={(value: number, name?: string | number) => formatTooltipValue(value, name)}
           />
           <Legend 
             wrapperStyle={{ 

@@ -104,9 +104,7 @@ export const featureComparison: FeatureRow[] = [
   { category: 'Integrations', feature: 'Custom Integrations', free: false, startup: false, business: false, enterprise: true },
   
   // Collaboration
-  { category: 'Collaboration', feature: 'Team Dashboards', free: false, startup: false, business: false, enterprise: true },
-  { category: 'Collaboration', feature: 'Team Sharing', free: false, startup: false, business: false, enterprise: true },
-  { category: 'Collaboration', feature: 'Team Members', free: '1', startup: '1', business: '1', enterprise: 'Unlimited' },
+  { category: 'Collaboration', feature: 'Share Insights via Link', free: true, startup: true, business: true, enterprise: true },
   
   // Support
   { category: 'Support', feature: 'Email Support', free: true, startup: false, business: false, enterprise: false },

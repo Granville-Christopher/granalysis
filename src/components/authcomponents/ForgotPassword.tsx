@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../../utils/axios";
 import { Moon, Sun, Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
 import { Theme, ThemeConfig, THEME_CONFIG } from "../home/theme";
 
@@ -41,7 +41,7 @@ const ForgotPassword: React.FC = () => {
     setLoading(true);
 
     try {
-      const res = await axios.post('/auth/forgot-password', { email }, { withCredentials: true });
+      const res = await api.post('/auth/forgot-password', { email });
       if (res.data?.status === 'success') {
         setOtpSent(true);
         setSuccess("If the email exists, a reset code has been sent to " + email);
@@ -75,15 +75,11 @@ const ForgotPassword: React.FC = () => {
     setLoading(true);
 
     try {
-      const res = await axios.post(
-        '/auth/reset-password',
-        {
-          email: resetEmail,
-          code: otp,
-          password: newPassword,
-        },
-        { withCredentials: true }
-      );
+      const res = await api.post('/auth/reset-password', {
+        email: resetEmail,
+        code: otp,
+        password: newPassword,
+      });
       if (res.data?.status === 'success') {
         setSuccess("Password reset successful! Redirecting to login...");
         setTimeout(() => {

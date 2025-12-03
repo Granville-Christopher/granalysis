@@ -1,46 +1,153 @@
-# Getting Started with Create React App
+# Granalysis Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A modern, responsive React application for data analysis and insights visualization. Built with TypeScript, React, and Tailwind CSS.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- **Modern UI/UX**: Beautiful, theme-aware interface with dark/light mode
+- **Real-time Analytics**: Interactive charts and visualizations
+- **AI-Powered Insights**: AI chat assistant for data analysis
+- **File Management**: Upload, view, and analyze CSV, JSON, Excel, SQL, and PHP files
+- **User Authentication**: Secure session-based authentication
+- **Progressive Web App**: Offline support and installable
+- **Responsive Design**: Works on desktop, tablet, and mobile devices
 
-### `npm start`
+## Prerequisites
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- Node.js 18 or higher
+- npm or yarn
+- Backend API running (see `../node/README.md`)
+- Python service running (see `../python/README.md`)
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Installation
 
-### `npm test`
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+2. Configure environment variables (if needed):
+   ```bash
+   # Create .env file
+   REACT_APP_API_URL=http://localhost:5000/api
+   REACT_APP_PYTHON_API_URL=http://localhost:8000
+   ```
 
-### `npm run build`
+## Running the Application
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Development
+```bash
+npm start
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+The app will open at [http://localhost:3000](http://localhost:3000)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Production Build
+```bash
+npm run build
+```
 
-### `npm run eject`
+The optimized build will be in the `build/` directory.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+### Testing
+```bash
+npm test
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Project Structure
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+```
+granalysis/
+├── public/              # Static assets
+├── src/
+│   ├── components/     # React components
+│   │   ├── authcomponents/    # Authentication components
+│   │   ├── common/             # Shared components
+│   │   ├── dashboard-components/  # Dashboard components
+│   │   ├── home/               # Homepage components
+│   │   └── ui/                  # UI primitives
+│   ├── contexts/       # React contexts (Theme, etc.)
+│   ├── hooks/          # Custom React hooks
+│   ├── pages/          # Page components
+│   ├── types/          # TypeScript type definitions
+│   └── utils/          # Utility functions
+├── package.json
+├── tsconfig.json
+└── tailwind.config.js
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+## Key Technologies
 
-## Learn More
+- **React 18**: UI library
+- **TypeScript**: Type safety
+- **Tailwind CSS**: Utility-first CSS framework
+- **React Router**: Client-side routing
+- **Axios**: HTTP client
+- **Recharts**: Chart library
+- **Lucide React**: Icon library
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Features by Tier
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Free Tier
+- Basic file upload and analysis
+- Standard insights
+- Limited file size
+
+### Startup Tier
+- Advanced analytics
+- Export functionality
+- Priority support
+
+### Business Tier
+- AI chat assistant
+- Scheduled exports
+- API access
+- Webhook integrations
+
+### Enterprise Tier
+- All Business features
+- Database linking
+- Custom integrations
+- Dedicated support
+
+## Development
+
+### Code Style
+- Use TypeScript for all new files
+- Follow React best practices
+- Use functional components with hooks
+- Implement proper error boundaries
+
+### Theme System
+The app uses a centralized theme system. See `src/components/home/theme.ts` for theme configuration.
+
+### API Integration
+API calls are made through `src/utils/axios.ts`. The service worker handles offline caching.
+
+## Building for Production
+
+1. Update environment variables
+2. Run build: `npm run build`
+3. Deploy the `build/` directory to your hosting service
+
+## Browser Support
+
+- Chrome (latest)
+- Firefox (latest)
+- Safari (latest)
+- Edge (latest)
+
+## License
+
+See [LICENSE](LICENSE) file for details.
+
+## Contributing
+
+1. Follow the existing code style
+2. Add TypeScript types for all new code
+3. Test your changes in both light and dark themes
+4. Ensure mobile responsiveness
+
+## Support
+
+For issues and questions, please refer to the main project documentation.

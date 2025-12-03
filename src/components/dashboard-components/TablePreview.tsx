@@ -97,18 +97,25 @@ const TablePreview: React.FC<TablePreviewProps> = ({ data, loading }) => {
   return (
     <div className={`${glassmorphismClass} p-6`} style={{ 
       backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.8)' : 'rgba(255, 255, 255, 0.8)',
-      boxShadow: colors.cardShadow 
+      boxShadow: colors.cardShadow
     }}>
       <h3 className={`text-lg font-semibold mb-4 ${colors.text}`}>Data Preview</h3>
-      <div className="overflow-x-auto overflow-y-auto max-h-[900px] rounded-lg">
+      <div 
+        className="overflow-x-auto overflow-y-scroll rounded-lg"
+        style={{ 
+          maxHeight: '600px',
+          height: '600px',
+          display: 'block'
+        }}
+      >
         <table className="min-w-full divide-y" style={{ borderColor: colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
-          <thead>
+          <thead className="sticky top-0 z-10" style={{ backgroundColor: colors.isDark ? 'rgba(11, 27, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)' }}>
             <tr>
               {columns.map((col, i) => (
                 <th
                   key={i}
                   className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${colors.textSecondary}`}
-                  style={{ borderBottom: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}` }}
+                  style={{ borderBottom: `1px solid ${colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }` }}
                 >
                   {col}
                 </th>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/axios';
+import { toast } from '../utils/toast';
 import { ArrowLeft, Download, Calendar, CreditCard, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { THEME_CONFIG, getGlassmorphismClass } from '../components/home/theme';
@@ -47,12 +48,12 @@ const PaymentHistory: React.FC = () => {
       
       try {
         const [paymentsRes, userRes] = await Promise.all([
-          axios.get('/payment/history', { withCredentials: true }).catch(err => {
+          api.get('/payment/history').catch(err => {
             console.warn('[PaymentHistory] Failed to fetch payments:', err);
             return { data: { status: 'error' } };
           }),
           userData ? Promise.resolve({ data: { status: 'success', user: userData } }) : 
-            axios.get('/auth/me', { withCredentials: true }).catch(err => {
+            api.get('/auth/me').catch(err => {
               console.warn('[PaymentHistory] Failed to fetch user:', err);
               return { data: { status: 'error' } };
             }),
@@ -80,7 +81,7 @@ const PaymentHistory: React.FC = () => {
         setTimeout(async () => {
           try {
             await new Promise(resolve => setTimeout(resolve, 2000));
-            const res = await axios.get('/auth/me', { withCredentials: true });
+            const res = await api.get('/auth/me');
             if (res.data?.status === 'success' && res.data?.user) {
               console.log('[PaymentHistory] Session verified, updating user data');
               setUser(res.data.user);
@@ -99,8 +100,7 @@ const PaymentHistory: React.FC = () => {
 
   const handleDownloadInvoice = async (paymentId: number) => {
     try {
-      const response = await axios.get(`/payment/${paymentId}/invoice`, {
-        withCredentials: true,
+      const response = await api.get(`/payment/${paymentId}/invoice`, {
         responseType: 'blob',
         headers: {
           'Accept': 'application/pdf',
@@ -138,7 +138,7 @@ const PaymentHistory: React.FC = () => {
         }
       }
       
-      alert(errorMessage);
+      toast.error(errorMessage);
     }
   };
 

@@ -3,10 +3,19 @@ import axios, { InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 import { apiCache } from './apiCache';
 
 // Create optimized axios instance for Node.js backend
+// API is now versioned at /api/v1
+const getBaseURL = () => {
+  const envUrl = process.env.REACT_APP_API_URL || '';
+  if (envUrl && !envUrl.endsWith('/api/v1')) {
+    return envUrl.endsWith('/') ? `${envUrl}api/v1` : `${envUrl}/api/v1`;
+  }
+  return envUrl || '/api/v1';
+};
+
 const nodeApi = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || '',
+  baseURL: getBaseURL(),
   withCredentials: true,
-  timeout: 20000, // 20 second timeout
+  timeout: 60000, // 60 second timeout (increased for file uploads)
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -23,20 +32,26 @@ nodeApi.interceptors.request.use(
       config.headers['Cache-Control'] = 'no-cache';
     }
     
-    // Check cache for GET requests
+    // Check cache for GET requests (but skip caching for dynamic endpoints like /files)
     if (config.method?.toLowerCase() === 'get' && config.url) {
-      const cacheKey = `${config.method}:${config.url}:${JSON.stringify(config.params || {})}`;
-      const cached = apiCache.get(cacheKey);
+      // Don't cache dynamic endpoints that change frequently
+      const noCacheEndpoints = ['/files', '/auth/me', '/ai/usage'];
+      const shouldCache = !noCacheEndpoints.some(endpoint => config.url?.startsWith(endpoint));
       
-      if (cached) {
-        return Promise.reject({
-          __cached: true,
-          data: cached,
-          config,
-        });
+      if (shouldCache) {
+        const cacheKey = `${config.method}:${config.url}:${JSON.stringify(config.params || {})}`;
+        const cached = apiCache.get(cacheKey);
+        
+        if (cached) {
+          return Promise.reject({
+            __cached: true,
+            data: cached,
+            config,
+          });
+        }
+        
+        (config as any).__cacheKey = cacheKey;
       }
-      
-      (config as any).__cacheKey = cacheKey;
     }
     
     return config;
@@ -50,9 +65,13 @@ nodeApi.interceptors.response.use(
     const config = response.config as any;
     const cacheKey = config.__cacheKey;
     
-    // Cache GET responses for 1 minute
+    // Cache GET responses for 1 minute (but skip dynamic endpoints)
     if (cacheKey && response.status === 200 && response.config.method?.toLowerCase() === 'get') {
-      apiCache.set(cacheKey, response.data, 60 * 1000);
+      const noCacheEndpoints = ['/files', '/auth/me', '/ai/usage'];
+      const shouldCache = !noCacheEndpoints.some(endpoint => response.config.url?.startsWith(endpoint));
+      if (shouldCache) {
+        apiCache.set(cacheKey, response.data, 60 * 1000);
+      }
     }
     
     return response;
@@ -74,4 +93,3 @@ nodeApi.interceptors.response.use(
 );
 
 export default nodeApi;
-

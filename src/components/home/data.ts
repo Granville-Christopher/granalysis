@@ -1,4 +1,4 @@
-import { BarChart3, CloudUpload, DollarSign, ShieldCheck, TrendingUp, Users, Zap } from 'lucide-react';
+import { BarChart3, CloudUpload, DollarSign, ShieldCheck, TrendingUp, Users, Zap, MessageSquare } from 'lucide-react';
 import { FaqItem, FeatureCard, IndustryDetail, PricingTier } from './theme';
 
 export const pricingData: PricingTier[] = [
@@ -8,55 +8,74 @@ export const pricingData: PricingTier[] = [
     description: 'Perfect for testing the waters and small personal projects.', 
     features: [
       '1 file/month, 100 rows max',
-      'Basic KPIs & 7-day sales trend',
+      'Basic KPIs (Sales, Profit, Orders)',
+      '7-day sales trend chart',
       'Top 3 products, Top 1 customer',
-      '1 AI insight summary'
+      '1 AI text summary insight',
+      'Data preview (100 rows)',
+      'Export to CSV',
+      'Email support'
     ], 
     isHighlighted: false 
   },
   { 
     title: 'Startup', 
-    price: 24, 
+    price: 29, 
     description: 'Accelerate your initial growth with essential analytics.', 
     features: [
       '5 files/month, 500 rows max',
       '30-day trends & 7-day forecast',
       'Top 5 products, Top 3 customers',
-      '3 AI recommendations'
+      '3 AI recommendations',
+      'Customer analytics (basic)',
+      'Regional performance (Top 3)',
+      'Payment method analysis',
+      'Priority support'
     ], 
     isHighlighted: true 
   },
   { 
     title: 'Business', 
-    price: 69, 
+    price: 99, 
     description: 'Professional analytics for data-driven decisions.', 
     features: [
       '15 files/month, 1,000 rows max',
-      'Full forecasting & advanced insights',
+      'Full forecasting (30-day, 90-day)',
       'RFM, CLV, Product Performance Matrix',
-      'All AI recommendations & opportunities'
+      'Unlimited AI recommendations & opportunities',
+      'Advanced customer analytics with charts',
+      'Product profitability analysis',
+      'Export to Excel, PDF, JSON',
+      'AI Chat Assistant included',
+      'Dedicated account manager'
     ], 
     isHighlighted: false 
   },
   { 
     title: 'Enterprise', 
-    price: 179, 
+    price: 299, 
     description: 'Unlimited scale and premium features for large organizations.', 
     features: [
       'Unlimited files & rows',
-      'Database linking & API access',
+      'Database linking & real-time sync',
+      'API access & custom integrations',
       'All advanced analytics & AI features',
-      'Team collaboration & 24/7 support'
+      'Market basket & cohort analysis',
+      'Churn prediction & anomaly detection',
+      '24/7 premium support & SLA guarantees',
+      'AI Chat Assistant included',
+      'Team collaboration tools'
     ], 
     isHighlighted: false 
   },
 ];
 
 export const featureCards: FeatureCard[] = [
-  { title: 'Upload & Analyze', description: 'Securely connect data from CSV, JSON, or databases.', icon: CloudUpload },
+  { title: 'Upload & Analyze', description: 'Securely connect data from CSV, JSON, Excel, SQL, or databases.', icon: CloudUpload },
   { title: 'AI Insights', description: 'Instant, deep-dive analysis powered by the proprietary AI model.', icon: Zap },
   { title: 'Forecasting & Recommendations', description: 'Predict future trends and get actionable, step-by-step advice.', icon: TrendingUp },
   { title: 'Interactive Dashboards', description: 'Visually explore your metrics with fully customizable, real-time charts.', icon: BarChart3 },
+  { title: 'AI Chat Assistant', description: 'Get instant answers about your data, generate charts, and receive business insights on-demand.', icon: MessageSquare },
 ];
 
 export const healthMetrics = [

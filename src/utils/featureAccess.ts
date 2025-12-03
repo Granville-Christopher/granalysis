@@ -66,6 +66,16 @@ export const hasFeatureAccess = (tier: PricingTier, feature: string): boolean =>
       'export_excel',
       'export_pdf',
       'data_table_full',
+      // Advanced Analytics (Business tier)
+      'market_basket',
+      'seasonal_patterns',
+      'churn_analysis',
+      'financial_health',
+      'shipping_analysis',
+      'tax_analysis',
+      'product_velocity',
+      'cross_sell_opportunities',
+      'upsell_opportunities',
     ]),
     enterprise: new Set([
       // Enterprise has access to everything

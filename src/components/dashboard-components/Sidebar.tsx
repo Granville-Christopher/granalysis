@@ -1,8 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Upload, FileText, Moon, Sun, X, Database } from "lucide-react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { ChevronLeft, ChevronRight, Upload, FileText, Moon, Sun, X, Database, Download, Calendar, Archive } from "lucide-react";
 import { useTheme } from "../../contexts/ThemeContext";
 import api from "../../utils/axios";
 import { THEME_CONFIG, ThemeConfig, getGlassmorphismClass } from "../home/theme";
+import { toast } from '../../utils/toast';
+
+interface FilterOptions {
+  search?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  fileType?: string;
+  minSize?: number;
+  maxSize?: number;
+}
 
 interface SidebarProps {
   isSidebarOpen: boolean;
@@ -15,6 +25,8 @@ interface SidebarProps {
   onToggleCollapse?: () => void;
   user?: { pricingTier?: string } | null;
   onLinkDatabaseClick?: () => void;
+  onScheduleExports?: (fileId: number) => void;
+  filterOptions?: FilterOptions;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -28,6 +40,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onToggleCollapse,
   user,
   onLinkDatabaseClick,
+  onScheduleExports,
+  filterOptions = {},
 }) => {
   const [dropdownId, setDropdownId] = useState<number | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<Array<any>>([]);
@@ -36,26 +50,99 @@ const Sidebar: React.FC<SidebarProps> = ({
   const colors: ThemeConfig = isDark ? THEME_CONFIG.dark : THEME_CONFIG.light;
   const glassmorphismClass = getGlassmorphismClass(colors);
 
-  useEffect(() => {
-    const fetchFiles = async () => {
-      try {
-        const res = await api.get('/files');
-        if (res.data?.status === 'success') setUploadedFiles(res.data.files || []);
-      } catch (e) {
-        setUploadedFiles([]);
-      }
-    };
-    fetchFiles();
-  }, [refreshKey]);
-
-  const fetchFiles = async () => {
+  const fetchFiles = useCallback(async () => {
     try {
-      const res = await api.get('/files');
-      if (res.data?.status === 'success') setUploadedFiles(res.data.files || []);
-    } catch (e) {
+      console.log('[Sidebar] Fetching files...');
+
+      const res = await api.get('/files', {
+        params: { _t: Date.now() }, 
+        headers: { 'Cache-Control': 'no-cache' },
+      });
+      console.log('[Sidebar] Files response status:', res.status);
+      console.log('[Sidebar] Files response data:', res.data);
+      
+      // Handle different response formats
+      let files: any[] = [];
+      if (res.data?.status === 'success' && res.data?.files) {
+        files = res.data.files;
+      } else if (Array.isArray(res.data)) {
+        // Sometimes the API returns an array directly
+        files = res.data;
+      } else if (res.data?.files && Array.isArray(res.data.files)) {
+        // Handle case where files is directly in data
+        files = res.data.files;
+      }
+      
+      console.log('[Sidebar] Setting files:', files.length, 'files');
+      console.log('[Sidebar] File IDs:', files.map((f: any) => f.id));
+      console.log('[Sidebar] Files data:', files);
+      setUploadedFiles(files);
+    } catch (e: any) {
+      console.error('[Sidebar] Failed to fetch files:', e);
+      console.error('[Sidebar] Error status:', e.response?.status);
+      console.error('[Sidebar] Error status text:', e.response?.statusText);
+      console.error('[Sidebar] Error data:', e.response?.data);
+      console.error('[Sidebar] Error message:', e.message);
+      console.error('[Sidebar] Full error:', e);
+      
+      // Set empty array on error to prevent undefined state
       setUploadedFiles([]);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    console.log('[Sidebar] useEffect triggered, refreshKey:', refreshKey);
+    fetchFiles();
+  }, [refreshKey, fetchFiles]);
+
+  const filteredFiles = useMemo(() => {
+    // Filter out archived files from main list
+    let filtered = uploadedFiles.filter(file => file.status !== 'archived');
+
+    if (filterOptions.search) {
+      const searchLower = filterOptions.search.toLowerCase();
+      filtered = filtered.filter(file => 
+        file.originalName?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    if (filterOptions.dateFrom) {
+      const fromDate = new Date(filterOptions.dateFrom);
+      filtered = filtered.filter(file => {
+        const fileDate = new Date(file.uploadedAt);
+        return fileDate >= fromDate;
+      });
+    }
+    if (filterOptions.dateTo) {
+      const toDate = new Date(filterOptions.dateTo);
+      toDate.setHours(23, 59, 59, 999); 
+      filtered = filtered.filter(file => {
+        const fileDate = new Date(file.uploadedAt);
+        return fileDate <= toDate;
+      });
+    }
+
+    if (filterOptions.fileType) {
+      const ext = filterOptions.fileType.toLowerCase();
+      filtered = filtered.filter(file => {
+        const fileName = file.originalName?.toLowerCase() || '';
+        if (ext === 'csv') return fileName.endsWith('.csv');
+        if (ext === 'xlsx') return fileName.endsWith('.xlsx') || fileName.endsWith('.xls');
+        if (ext === 'json') return fileName.endsWith('.json');
+        if (ext === 'sql') return fileName.endsWith('.sql');
+        return true;
+      });
+    }
+
+    if (filterOptions.minSize !== undefined) {
+      filtered = filtered.filter(file => (file.size || 0) >= filterOptions.minSize! * 1024);
+    }
+    if (filterOptions.maxSize !== undefined) {
+      filtered = filtered.filter(file => (file.size || 0) <= filterOptions.maxSize! * 1024);
+    }
+
+    return filtered;
+  }, [uploadedFiles, filterOptions]);
 
   const handleFileDelete = async (id: number) => {
     try {
@@ -74,11 +161,21 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <aside
-      className={`fixed top-0 left-0 h-full z-30 transition-all duration-300 ${
-        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-      } md:translate-x-0 ${isCollapsed ? "w-20" : "w-64"}`}
-    >
+    <>
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-20 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+          aria-label="Close sidebar"
+        />
+      )}
+      <aside
+        className={`fixed top-0 left-0 h-full z-30 transition-all duration-300 ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0 ${isCollapsed ? "w-20" : "w-64"}`}
+        role="navigation"
+        aria-label="File navigation sidebar"
+      >
       <div
         className={`${glassmorphismClass} rounded-none h-full flex flex-col transition-all duration-300`}
         style={{
@@ -86,7 +183,6 @@ const Sidebar: React.FC<SidebarProps> = ({
           boxShadow: colors.cardShadow,
         }}
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-4 py-4 border-b" style={{ borderColor: colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
           {!isCollapsed && (
             <span className={`text-lg font-bold tracking-wide ${colors.text}`}>Files</span>
@@ -138,7 +234,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
           ) : (
             <ul className="space-y-2">
-              {uploadedFiles.map((file: any) => (
+              {filteredFiles.map((file: any) => (
                 <li
                   key={file.id}
                   className={`group flex items-center gap-2 rounded-xl px-3 py-2 transition-all duration-200 ${
@@ -177,15 +273,155 @@ const Sidebar: React.FC<SidebarProps> = ({
                         </button>
                         {dropdownId === file.id && (
                           <div
-                            className={`absolute right-0 mt-2 w-40 ${glassmorphismClass} z-40`}
+                            className={`absolute right-0 mt-2 w-48 ${glassmorphismClass} z-40 rounded-lg overflow-hidden`}
                             style={{ boxShadow: colors.cardShadow }}
                           >
+                            {(user?.pricingTier === 'business' || user?.pricingTier === 'enterprise') && (
+                              <>
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      const res = await fetch(`/api/v1/files/${file.id}/export?format=csv`, { credentials: 'include' });
+                                      if (!res.ok) throw new Error('Export failed');
+                                      const blob = await res.blob();
+                                      const url = window.URL.createObjectURL(blob);
+                                      const a = document.createElement('a');
+                                      a.href = url;
+                                      a.download = `${file.originalName.replace(/\.[^/.]+$/, '')}-export.csv`;
+                                      document.body.appendChild(a);
+                                      a.click();
+                                      a.remove();
+                                      window.URL.revokeObjectURL(url);
+                                      setDropdownId(null);
+                                    } catch (e) {
+                                      console.error('Export failed:', e);
+                                      setDropdownId(null);
+                                    }
+                                  }}
+                                  className={`block w-full text-left px-4 py-2 ${colors.text} flex items-center gap-2 ${
+                                    colors.isDark ? "hover:bg-white/10" : "hover:bg-gray-100"
+                                  } transition-colors`}
+                                  aria-label="Export file as CSV"
+                                >
+                                  <Download className="w-4 h-4" />
+                                  Export CSV
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      const res = await fetch(`/api/v1/files/${file.id}/export?format=json`, { credentials: 'include' });
+                                      if (!res.ok) throw new Error('Export failed');
+                                      const blob = await res.blob();
+                                      const url = window.URL.createObjectURL(blob);
+                                      const a = document.createElement('a');
+                                      a.href = url;
+                                      a.download = `${file.originalName.replace(/\.[^/.]+$/, '')}-export.json`;
+                                      document.body.appendChild(a);
+                                      a.click();
+                                      a.remove();
+                                      window.URL.revokeObjectURL(url);
+                                      setDropdownId(null);
+                                    } catch (e) {
+                                      console.error('Export failed:', e);
+                                      setDropdownId(null);
+                                    }
+                                  }}
+                                  className={`block w-full text-left px-4 py-2 ${colors.text} flex items-center gap-2 ${
+                                    colors.isDark ? "hover:bg-white/10" : "hover:bg-gray-100"
+                                  } transition-colors border-t`}
+                                  style={{ borderColor: colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
+                                  aria-label="Export file as JSON"
+                                >
+                                  <Download className="w-4 h-4" />
+                                  Export JSON
+                                </button>
+                              </>
+                            )}
+                            {(user?.pricingTier === 'business' || user?.pricingTier === 'enterprise') && (
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    const res = await fetch(`/api/v1/files/${file.id}/export?format=pdf`, { credentials: 'include' });
+                                    if (!res.ok) throw new Error('Export failed');
+                                    const blob = await res.blob();
+                                    const url = window.URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = `${file.originalName.replace(/\.[^/.]+$/, '')}-export.pdf`;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    a.remove();
+                                    window.URL.revokeObjectURL(url);
+                                    setDropdownId(null);
+                                  } catch (e) {
+                                    console.error('PDF export failed:', e);
+                                    setDropdownId(null);
+                                  }
+                                }}
+                                className={`block w-full text-left px-4 py-2 ${colors.text} flex items-center gap-2 ${
+                                  colors.isDark ? "hover:bg-white/10" : "hover:bg-gray-100"
+                                } transition-colors border-t`}
+                                style={{ borderColor: colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
+                                aria-label="Export file as PDF"
+                              >
+                                <Download className="w-4 h-4" />
+                                Export PDF
+                              </button>
+                            )}
+                            {(user?.pricingTier === 'business' || user?.pricingTier === 'enterprise') && (
+                              <button
+                                onClick={() => {
+                                  setDropdownId(null);
+                                  if (onScheduleExports) {
+                                    onScheduleExports(file.id);
+                                  }
+                                }}
+                                className={`block w-full text-left px-4 py-2 ${colors.text} flex items-center gap-2 ${
+                                  colors.isDark ? "hover:bg-white/10" : "hover:bg-gray-100"
+                                } transition-colors border-t`}
+                                style={{ borderColor: colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
+                                aria-label="Schedule exports"
+                              >
+                                <Calendar className="w-4 h-4" />
+                                Schedule Exports
+                              </button>
+                            )}
                             <button
-                              onClick={() => setConfirmDeleteId(file.id)}
-                              className={`block w-full text-left px-4 py-2 ${colors.text} ${
+                              onClick={async () => {
+                                try {
+                                  await api.post(`/archiving/files/${file.id}/archive`);
+                                  // Remove file from list immediately (it's now archived)
+                                  setUploadedFiles((prev) => prev.filter((f) => f.id !== file.id));
+                                  setDropdownId(null);
+                                  // Refresh files list to ensure consistency
+                                  setTimeout(() => fetchFiles(), 500);
+                                } catch (e) {
+                                  console.error('Archive failed:', e);
+                                  toast.error('Failed to archive file');
+                                  setDropdownId(null);
+                                }
+                              }}
+                              className={`block w-full text-left px-4 py-2 ${colors.text} flex items-center gap-2 ${
                                 colors.isDark ? "hover:bg-white/10" : "hover:bg-gray-100"
-                              } transition-colors`}
+                              } transition-colors border-t`}
+                              style={{ borderColor: colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
+                              aria-label="Archive file"
                             >
+                              <Archive className="w-4 h-4" />
+                              Archive
+                            </button>
+                            <button
+                              onClick={() => {
+                                setConfirmDeleteId(file.id);
+                                setDropdownId(null);
+                              }}
+                              className={`w-full text-left px-4 py-2 text-red-500 flex items-center gap-2 ${
+                                colors.isDark ? "hover:bg-white/10" : "hover:bg-gray-100"
+                              } transition-colors border-t`}
+                              style={{ borderColor: colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
+                              aria-label="Delete file"
+                            >
+                              <X className="w-4 h-4" />
                               Delete
                             </button>
                           </div>
@@ -202,6 +438,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         {/* Upload Button */}
         <div className="p-4 border-t space-y-3" style={{ borderColor: colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
           <button
+            data-tutorial="upload-button"
             className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
               colors.isDark
                 ? "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white"
@@ -211,6 +448,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               boxShadow: `0 4px 15px ${colors.accent}40`,
             }}
             onClick={onUploadClick}
+            aria-label="Upload file"
           >
             <Upload className="w-5 h-5" />
             {!isCollapsed && <span>Upload File</span>}
@@ -272,7 +510,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
       )}
-    </aside>
+      </aside>
+    </>
   );
 };
 

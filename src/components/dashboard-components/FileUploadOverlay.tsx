@@ -86,13 +86,13 @@ const FileUploadOverlay: React.FC<FileUploadOverlayProps> = ({
           Upload a File
         </h2>
         <p className={`${colors.textSecondary} mb-6 text-center`}>
-          Upload your CSV, Excel, or SQL files and instantly preview, analyze,
+          Upload your CSV, Excel, JSON, SQL, or PHP files and instantly preview, analyze,
           and export results.
         </p>
         <input
           ref={fileInputRef}
           type="file"
-          accept=".csv,.xlsx,.xls,.sql"
+          accept=".csv,.xlsx,.xls,.json,.sql,.php,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/json,text/json,application/sql,text/sql,text/plain"
           onChange={handleFileChange}
           className="hidden"
           tabIndex={-1}

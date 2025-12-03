@@ -5,6 +5,8 @@ import api from "../../utils/axios";
 import { Theme, ThemeConfig, THEME_CONFIG, 
   // getGlassmorphismClass
  } from "../home/theme";
+import { EmailVerificationModal } from "./EmailVerificationModal";
+import MaintenanceModal from "../common/MaintenanceModal";
 
 // Google Icon Component
 const GoogleIcon = ({ className }: { className?: string }) => (
@@ -42,6 +44,8 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
   const [twoFactorRequired, setTwoFactorRequired] = useState(false);
   const [twoFactorCode, setTwoFactorCode] = useState("");
   const [twoFactorMessage, setTwoFactorMessage] = useState("");
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [maintenanceMessage, setMaintenanceMessage] = useState("");
 
   // Signup state
   const [fullName, setFullName] = useState("");
@@ -55,9 +59,36 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [signupError, setSignupError] = useState("");
   const [signupSuccess, setSignupSuccess] = useState("");
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
 
   useEffect(() => {
     setIsLogin(location.pathname === '/login');
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const checkMaintenance = async () => {
+      // Skip maintenance check for admin routes - maintenance mode only affects regular users
+      if (location.pathname.startsWith('/admin')) {
+        setMaintenanceMode(false);
+        return;
+      }
+
+      try {
+        const response = await api.get('/maintenance/status');
+        if (response.data?.status === 'success') {
+          setMaintenanceMode(response.data.maintenanceMode || false);
+          setMaintenanceMessage(response.data.message || '');
+        }
+      } catch (error) {
+        console.error('Failed to check maintenance status:', error);
+        setMaintenanceMode(false);
+      }
+    };
+
+    checkMaintenance();
+    // Check every 30 seconds
+    const interval = setInterval(checkMaintenance, 30000);
+    return () => clearInterval(interval);
   }, [location.pathname]);
 
   const toggleTheme = () => {
@@ -211,6 +242,12 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent signup if maintenance mode is on
+    if (maintenanceMode) {
+      setSignupError('System is under maintenance. Please try again later.');
+      return;
+    }
     if (!fullName || !signupEmail || !signupPassword || !confirmPassword || !companyName || !phone || !businessType) {
       setSignupError("Please fill in all fields.");
       return;
@@ -238,6 +275,17 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
       
       if (registerResponse.data?.status === 'success' && registerResponse.data?.user) {
         // Registration response already contains user data
+        const user = registerResponse.data.user;
+        
+        // Check if email is verified
+        if (!user.emailVerified) {
+          // Show email verification modal
+          setShowEmailVerification(true);
+          setSignupSuccess('Registration successful! Please verify your email.');
+          return;
+        }
+        
+        // Email already verified, proceed with login
         setSignupSuccess('Registration successful! Redirecting...');
         
         // Wait for session cookie to be set, then verify it works
@@ -250,9 +298,9 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
             console.log('[Frontend] Session verified after registration, redirecting...');
             // Store flag and user data
             sessionStorage.setItem('justLoggedIn', 'true');
-            sessionStorage.setItem('userData', JSON.stringify(registerResponse.data.user));
+            sessionStorage.setItem('userData', JSON.stringify(user));
             if (onLoginSuccess) {
-              onLoginSuccess(registerResponse.data.user);
+              onLoginSuccess(user);
             } else {
               // Use navigate instead of window.location.href to avoid full page reload
               navigate('/dashboard', { replace: true });
@@ -260,7 +308,7 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
           } else {
             // Session not ready, wait a bit more and try again
             sessionStorage.setItem('justLoggedIn', 'true');
-            sessionStorage.setItem('userData', JSON.stringify(registerResponse.data.user));
+            sessionStorage.setItem('userData', JSON.stringify(user));
             await new Promise(resolve => setTimeout(resolve, 500));
             navigate('/dashboard', { replace: true });
           }
@@ -269,7 +317,7 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
           // Still redirect - session might be set but verification failed
           // Store flag and user data
           sessionStorage.setItem('justLoggedIn', 'true');
-          sessionStorage.setItem('userData', JSON.stringify(registerResponse.data.user));
+          sessionStorage.setItem('userData', JSON.stringify(user));
           await new Promise(resolve => setTimeout(resolve, 500));
           navigate('/dashboard', { replace: true });
         }
@@ -303,13 +351,17 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div
-      className={`min-h-screen transition-colors duration-500 relative overflow-hidden ${isLight ? 'auth-light' : ''}`}
-      style={{
-        background: backgroundStyle,
-        fontFamily: "Inter, sans-serif",
-      }}
-    >
+    <>
+      {maintenanceMode && <MaintenanceModal message={maintenanceMessage} />}
+      <div
+        className={`min-h-screen transition-colors duration-500 relative overflow-hidden ${isLight ? 'auth-light' : ''}`}
+        style={{
+          background: backgroundStyle,
+          fontFamily: "Inter, sans-serif",
+          filter: maintenanceMode ? 'blur(10px)' : 'none',
+          pointerEvents: maintenanceMode ? 'none' : 'auto',
+        }}
+      >
       <style>{`
         body { background-color: ${
           colors.bg
@@ -513,24 +565,32 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
                 }}
               >
                 <div className="text-center mb-6">
-                  <h2 className={`md:text-3xl text-xl font-bold mb-2 ${colors.text}`}>
+                  <h2 
+                    className={`md:text-3xl text-xl font-bold mb-2`}
+                    style={{ color: colors.isDark ? '#FFFFFF' : '#111827' }}
+                  >
                     Welcome Back
                   </h2>
-                  <p className={`${colors.textSecondary} md:text-base text-xs`}>Login to your account</p>
+                  <p 
+                    className={`md:text-base text-xs`}
+                    style={{ color: colors.isDark ? '#E5E7EB' : '#6b7280' }}
+                  >
+                    Login to your account
+                  </p>
                 </div>
 
                 {loginSuccess ? (
                   <div
-                    className={`p-4 rounded-lg bg-green-500/20 border border-green-500/50 ${colors.text}`}
-                    style={{ color: colors.isDark ? undefined : '#111827' }}
+                    className={`p-4 rounded-lg bg-green-500/20 border border-green-500/50`}
+                    style={{ color: colors.isDark ? '#FFFFFF' : '#111827' }}
                   >
                     {loginSuccess}
                   </div>
                 ) : (
                   loginError && (
                     <div
-                      className={`p-4 rounded-lg bg-red-500/20 border border-red-500/50 ${colors.text}`}
-                      style={{ color: colors.isDark ? undefined : '#111827' }}
+                      className={`p-4 rounded-lg bg-red-500/20 border border-red-500/50`}
+                      style={{ color: colors.isDark ? '#FFFFFF' : '#111827' }}
                     >
                       {loginError}
                     </div>
@@ -777,24 +837,32 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
                 }}
               >
                 <div className="text-center mb-6">
-                  <h2 className={`md:text-3xl text-xl font-bold mb-2 ${colors.text}`}>
+                  <h2 
+                    className={`md:text-3xl text-xl font-bold mb-2`}
+                    style={{ color: colors.isDark ? '#FFFFFF' : '#111827' }}
+                  >
                     Create Account
                   </h2>
-                  <p className={`${colors.textSecondary} md:text-base text-xs`}>Sign up to get started</p>
+                  <p 
+                    className={`md:text-base text-xs`}
+                    style={{ color: colors.isDark ? '#E5E7EB' : '#6b7280' }}
+                  >
+                    Sign up to get started
+                  </p>
                 </div>
 
                 {signupSuccess ? (
                   <div
-                    className={`p-4 rounded-lg bg-green-500/20 border border-green-500/50 ${colors.text}`}
-                    style={{ color: colors.isDark ? undefined : '#111827' }}
+                    className={`p-4 rounded-lg bg-green-500/20 border border-green-500/50`}
+                    style={{ color: colors.isDark ? '#FFFFFF' : '#111827' }}
                   >
                     {signupSuccess}
                   </div>
                 ) : (
                   signupError && (
                     <div
-                      className={`p-4 rounded-lg bg-red-500/20 border border-red-500/50 ${colors.text}`}
-                      style={{ color: colors.isDark ? undefined : '#111827' }}
+                      className={`p-4 rounded-lg bg-red-500/20 border border-red-500/50`}
+                      style={{ color: colors.isDark ? '#FFFFFF' : '#111827' }}
                     >
                       {signupError}
                     </div>
@@ -1079,7 +1147,40 @@ const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onLoginSuccess }) => {
           </div>
         </div>
       </div>
-    </div>
+      
+      {maintenanceMode && <MaintenanceModal message={maintenanceMessage} />}
+      
+      {showEmailVerification && (
+        <EmailVerificationModal
+          email={signupEmail}
+          onVerified={async () => {
+            setShowEmailVerification(false);
+            // Refresh user data to get updated emailVerified status
+            try {
+              const verifyResponse = await api.get("/auth/me", { withCredentials: true });
+              if (verifyResponse.data?.status === 'success' && verifyResponse.data?.user) {
+                const user = verifyResponse.data.user;
+                sessionStorage.setItem('justLoggedIn', 'true');
+                sessionStorage.setItem('userData', JSON.stringify(user));
+                if (onLoginSuccess) {
+                  onLoginSuccess(user);
+                } else {
+                  navigate('/dashboard', { replace: true });
+                }
+              }
+            } catch (err) {
+              console.error('Failed to verify session after email verification:', err);
+              // Still redirect
+              navigate('/dashboard', { replace: true });
+            }
+          }}
+          onResend={() => {
+            // Resend is handled in the modal
+          }}
+        />
+      )}
+      </div>
+    </>
   );
 };
 

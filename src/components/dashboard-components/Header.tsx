@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { LogOut, Download, User, Table, Sun, Moon, File, X, CreditCard, Settings, ChevronDown } from "lucide-react";
+import { LogOut, Download, User, Table, Sun, Moon, File, X, CreditCard, Settings, ChevronDown, Share2, Activity, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { THEME_CONFIG, ThemeConfig, getGlassmorphismClass } from "../home/theme";
 import { useTheme } from "../../contexts/ThemeContext";
+import SupportMessages from "./SupportMessages";
+import api from "../../utils/axios";
 
 interface HeaderProps {
   onLogout?: () => void;
@@ -10,17 +12,63 @@ interface HeaderProps {
   onViewDataTable?: () => void;
   hasData?: boolean;
   onShowUpgradeModal?: (limitType: 'files' | 'rows' | 'export', exportType?: 'csv' | 'excel' | 'pdf' | 'sql') => void;
+  onShareInsights?: () => void;
+  selectedFileId?: number | null;
+  selectedFileName?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ onLogout, user, onViewDataTable, hasData, onShowUpgradeModal }) => {
+const Header: React.FC<HeaderProps> = ({ onLogout, user, onViewDataTable, hasData, onShowUpgradeModal, onShareInsights, selectedFileId, selectedFileName }) => {
   const { isDark, toggleTheme } = useTheme();
   const colors: ThemeConfig = isDark ? THEME_CONFIG.dark : THEME_CONFIG.light;
   const glassmorphismClass = getGlassmorphismClass(colors);
   const navigate = useNavigate();
   const [showPrintMenu, setShowPrintMenu] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showSupportMessages, setShowSupportMessages] = useState(false);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const printMenuRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Fetch unread messages count for user
+  const fetchUnreadCount = async () => {
+    if (!user?.pricingTier || !['startup', 'business', 'enterprise'].includes(user.pricingTier)) {
+      return;
+    }
+    try {
+      const response = await api.get('/messages', { withCredentials: true });
+      if (response.data?.status === 'success' && response.data.tickets) {
+        // Calculate unread messages from admins
+        let unreadCount = 0;
+        response.data.tickets.forEach((ticket: any) => {
+          if (!ticket.messages || ticket.messages.length === 0) return;
+          if (!ticket.readBy?.user) {
+            // If user never read, count all admin messages
+            unreadCount += ticket.messages.filter((m: any) => m.senderType === 'admin').length;
+          } else {
+            // Count messages after last read time
+            const lastReadTime = new Date(ticket.readBy.user).getTime();
+            unreadCount += ticket.messages.filter((m: any) => 
+              m.senderType === 'admin' && new Date(m.createdAt).getTime() > lastReadTime
+            ).length;
+          }
+        });
+        setUnreadMessagesCount(unreadCount);
+      }
+    } catch (error) {
+      console.error('Failed to fetch unread count:', error);
+    }
+  };
+
+  // Poll for unread counts
+  useEffect(() => {
+    if (!user?.pricingTier || !['startup', 'business', 'enterprise'].includes(user.pricingTier)) {
+      return;
+    }
+    
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 10000); // Poll every 10 seconds
+    return () => clearInterval(interval);
+  }, [user?.pricingTier]);
 
   // Close menus when clicking outside
   useEffect(() => {
@@ -118,6 +166,7 @@ const Header: React.FC<HeaderProps> = ({ onLogout, user, onViewDataTable, hasDat
   };
 
   return (
+    <>
     <header
       className={`fixed left-0 right-0 top-0 z-40 flex flex-col md:flex-row items-center p-4 transition-all duration-300 ${glassmorphismClass} rounded-none`}
       style={{
@@ -146,108 +195,19 @@ const Header: React.FC<HeaderProps> = ({ onLogout, user, onViewDataTable, hasDat
               <span>View Data Table</span>
             </button>
           )}
-          <button
-            onClick={() => {
-              const tier = (user?.pricingTier || 'free') as string;
-              if (tier === 'free') {
-                onShowUpgradeModal?.('export', 'csv');
-              } else {
-                // Trigger CSV export download
-                fetch('/files/export.csv', { credentials: 'include' })
-                  .then(async (res) => {
-                    if (!res.ok) throw new Error('Failed to export CSV');
-                    const blob = await res.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'files-export.csv';
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                    window.URL.revokeObjectURL(url);
-                  })
-                  .catch((e) => console.error(e));
-              }
-            }}
-            className={`px-3 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 text-white`}
-            style={{
-              background: `linear-gradient(135deg, #16a34a 0%, #15803d 100%)`,
-              boxShadow: `0 4px 15px rgba(22, 163, 74, 0.4)`,
-            }}
-          >
-            <Download className="w-4 h-4" />
-            <span>Export CSV</span>
-          </button>
-          <button
-            onClick={() => {
-              const tier = (user?.pricingTier || 'free') as string;
-              if (tier === 'free' || tier === 'startup') {
-                onShowUpgradeModal?.('export', 'excel');
-              } else {
-                // Trigger Excel export (served as CSV with Excel MIME)
-                fetch('/files/export.xlsx', { credentials: 'include' })
-                  .then(async (res) => {
-                    if (!res.ok) throw new Error('Failed to export Excel');
-                    const blob = await res.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'files-export.xlsx';
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                    window.URL.revokeObjectURL(url);
-                  })
-                  .catch((e) => console.error(e));
-              }
-            }}
-            className={`px-3 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 text-white`}
-            style={{
-              background: `linear-gradient(135deg, #eab308 0%, #ca8a04 100%)`,
-              boxShadow: `0 4px 15px rgba(234, 179, 8, 0.4)`,
-            }}
-          >
-            <Download className="w-4 h-4" />
-            <span>Export Excel</span>
-          </button>
-          <button
-            onClick={() => {
-              const tier = (user?.pricingTier || 'free') as string;
-              if (tier === 'free' || tier === 'startup') {
-                onShowUpgradeModal?.('export', 'pdf');
-              } else {
-                // TODO: Implement PDF export
-                console.log('Export PDF');
-              }
-            }}
-            className={`px-3 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 text-white`}
-            style={{
-              background: `linear-gradient(135deg, ${colors.accent} 0%, ${colors.accent}80 100%)`,
-              boxShadow: `0 4px 15px ${colors.accent}40`,
-            }}
-          >
-            <Download className="w-4 h-4" />
-            <span>Export PDF</span>
-          </button>
-          <button
-            onClick={() => {
-              const tier = (user?.pricingTier || 'free') as string;
-              if (tier !== 'enterprise') {
-                onShowUpgradeModal?.('export', 'sql');
-              } else {
-                // TODO: Implement SQL export
-                console.log('Export SQL');
-              }
-            }}
-            className={`px-3 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 text-white`}
-            style={{
-              background: `linear-gradient(135deg, ${colors.accent} 0%, ${colors.accent}80 100%)`,
-              boxShadow: `0 4px 15px ${colors.accent}40`,
-            }}
-          >
-            <Download className="w-4 h-4" />
-            <span>Export SQL</span>
-          </button>
+          {hasData && selectedFileId && onShareInsights && (
+            <button
+              onClick={onShareInsights}
+              className={`px-3 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 text-white`}
+              style={{
+                background: `linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)`,
+                boxShadow: `0 4px 15px rgba(139, 92, 246, 0.4)`,
+              }}
+            >
+              <Share2 className="w-4 h-4" />
+              <span>Share Insights</span>
+            </button>
+          )}
           {hasData && (
             <div className="relative" ref={printMenuRef}>
               <button
@@ -324,6 +284,56 @@ const Header: React.FC<HeaderProps> = ({ onLogout, user, onViewDataTable, hasDat
             } ${colors.text}`}
           >
             {user.pricingTier.charAt(0).toUpperCase() + user.pricingTier.slice(1)}
+          </button>
+        )}
+        {/* Monitoring Dashboard Link */}
+        {(user?.pricingTier === 'business' || user?.pricingTier === 'enterprise') && (
+          <button
+            type="button"
+            onClick={() => navigate('/monitoring')}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors hover:opacity-80"
+            style={{
+              backgroundColor: colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+            }}
+            title="System Monitoring"
+          >
+            <Activity className="w-4 h-4" style={{ color: colors.accent }} />
+            <span className={`text-sm font-semibold hidden md:inline ${colors.text}`}>Monitoring</span>
+          </button>
+        )}
+        {/* Support Messages - Only for Startup, Business, Enterprise tiers */}
+        {user?.pricingTier && ['startup', 'business', 'enterprise'].includes(user.pricingTier) && (
+          <button
+            type="button"
+            onClick={() => setShowSupportMessages(true)}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors hover:opacity-80 relative"
+            style={{
+              backgroundColor: colors.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+            }}
+            title="Support Messages"
+          >
+            <MessageSquare className="w-4 h-4" style={{ color: colors.accent }} />
+            <span className={`text-sm font-semibold hidden md:inline ${colors.text}`}>Support</span>
+            {unreadMessagesCount > 0 && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '-4px',
+                  right: '-4px',
+                  background: '#ef4444',
+                  color: 'white',
+                  borderRadius: '10px',
+                  padding: '2px 6px',
+                  fontSize: '10px',
+                  fontWeight: 'bold',
+                  minWidth: '18px',
+                  textAlign: 'center',
+                  border: `2px solid ${colors.isDark ? '#0B1B3B' : '#ffffff'}`,
+                }}
+              >
+                {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
+              </div>
+            )}
           </button>
         )}
         {/* Direct Account Link */}
@@ -425,6 +435,53 @@ const Header: React.FC<HeaderProps> = ({ onLogout, user, onViewDataTable, hasDat
         </button>
       </div>
     </header>
+
+    {/* Support Messages Modal */}
+    {showSupportMessages && (
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+        }}
+        onClick={() => setShowSupportMessages(false)}
+      >
+        <div
+          style={{
+            background: colors.isDark ? '#1a1a2e' : '#ffffff',
+            borderRadius: '12px',
+            padding: '20px',
+            width: '90%',
+            maxWidth: '1200px',
+            maxHeight: '90vh',
+            overflow: 'auto',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2 style={{ color: colors.text, fontSize: '24px', fontWeight: 'bold' }}>Support Messages</h2>
+            <button
+              onClick={() => setShowSupportMessages(false)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: colors.text,
+                cursor: 'pointer',
+                padding: '8px',
+              }}
+            >
+              <X size={24} />
+            </button>
+          </div>
+          <SupportMessages />
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 

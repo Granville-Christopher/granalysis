@@ -1,6 +1,7 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Granalysis",
+  "name": "Granalysis - AI-Powered Data Analytics",
+  "description": "Transform your data into actionable insights with AI-powered analytics",
   "icons": [
     {
       "src": "favicon.ico",
@@ -10,16 +11,54 @@
     {
       "src": "logo192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
       "src": "logo512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#0B1B3B",
+  "background_color": "#0B1B3B",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": ["business", "productivity", "analytics"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Open your analytics dashboard",
+      "url": "/dashboard",
+      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Upload File",
+      "short_name": "Upload",
+      "description": "Upload a new data file",
+      "url": "/dashboard?action=upload",
+      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+    }
+  ],
+  "share_target": {
+    "action": "/dashboard",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "file",
+          "accept": [".csv", ".xlsx", ".xls", ".json"]
+        }
+      ]
+    }
+  }
 }

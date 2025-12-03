@@ -38,6 +38,23 @@ class APICache {
     this.cache.delete(key);
   }
 
+  // Get all cache keys
+  keys(): string[] {
+    return Array.from(this.cache.keys());
+  }
+
+  // Delete entries matching a pattern
+  deleteByPattern(pattern: string): number {
+    let deletedCount = 0;
+    this.cache.forEach((entry, key) => {
+      if (key.includes(pattern)) {
+        this.cache.delete(key);
+        deletedCount++;
+      }
+    });
+    return deletedCount;
+  }
+
   // Clean expired entries
   cleanup(): void {
     const now = Date.now();

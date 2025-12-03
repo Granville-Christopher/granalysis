@@ -49,8 +49,9 @@ const InsightsMarquee: React.FC<InsightsMarqueeProps> = ({
 
   useEffect(() => {
     if (allContent.length === 0) {
-      setCurrentContent({ type: null, items: [] });
-      setIsVisible(false);
+      // Avoid unnecessary state churn
+      setCurrentContent((prev) => (prev.type === null && prev.items.length === 0 ? prev : { type: null, items: [] }));
+      setIsVisible((v) => (v ? false : v));
       initializedRef.current = false;
       currentIndexRef.current = 0;
       return;
@@ -148,7 +149,8 @@ const InsightsMarquee: React.FC<InsightsMarqueeProps> = ({
     return () => {
       clearAllTimeouts();
     };
-  }, [allContent, isPaused]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allContent]);
 
   const getIcon = () => {
     switch (currentContent.type) {

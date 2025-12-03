@@ -184,8 +184,10 @@ export interface FileInsights {
       at_risk_rate?: number;
     };
     seasonal_patterns?: {
-      quarterly?: Array<{ quarter: string; sales: number }>;
-      day_of_month?: Array<{ period: string; sales: number }>;
+      monthly?: Array<{ month: number; sales: number; month_name: string }>;
+      quarterly?: Array<{ quarter: number; sales: number }>;
+      day_of_week?: Array<{ day: string; sales: number }>;
+      day_of_month?: Array<{ day: number; sales: number }>;
     };
     clv_by_cohort?: Array<{ cohort: string; total_revenue: number; customer_count: number; avg_clv: number }>;
     payment_impact_analysis?: {

@@ -1,3 +1,12 @@
-# https://www.robotstxt.org/robotstxt.html
+# robots.txt for Granalysis
+
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /api/
+Disallow: /auth/
+Disallow: /dashboard/
+Disallow: /account/
+Disallow: /payment/
+
+# Sitemap
+Sitemap: https://granalysis.com/sitemap.xml
